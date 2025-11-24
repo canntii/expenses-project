@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Category } from '@/lib/types/category';
 import { Expense } from '@/lib/types/expense';
@@ -9,10 +9,17 @@ import { getCategoryDocument } from '@/lib/firebase/firestore/categories';
 import { getCategoryExpenses, deleteExpenseDocument, createExpenseDocument, updateExpenseDocument } from '@/lib/firebase/firestore/expenses';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import ExpenseCard from '@/components/expenses/ExpenseCard';
 import ExpenseForm from '@/components/expenses/ExpenseForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { ArrowLeft, TrendingDown, AlertTriangle, CheckCircle, Plus } from 'lucide-react';
+import { ArrowLeft, TrendingDown, AlertTriangle, CheckCircle, Plus, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
@@ -20,6 +27,7 @@ import { db } from '@/lib/firebase/client';
 export default function CategoryDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const categoryId = params.id as string;
 
@@ -28,6 +36,28 @@ export default function CategoryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+
+  // Filtros de mes y año - se inicializarán con los parámetros de URL si existen
+  const currentDate = new Date();
+  const urlMonth = searchParams.get('month');
+  const urlYear = searchParams.get('year');
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    urlMonth !== null ? urlMonth : currentDate.getMonth().toString()
+  );
+  const [selectedYear, setSelectedYear] = useState<string>(
+    urlYear !== null ? urlYear : currentDate.getFullYear().toString()
+  );
+
+  const monthNames = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  // Generar años disponibles (últimos 5 años + año actual + próximos 2 años)
+  const availableYears = Array.from({ length: 8 }, (_, i) =>
+    (currentDate.getFullYear() - 5 + i).toString()
+  );
 
   const loadCategoryData = useCallback(async () => {
     if (!categoryId) return;
@@ -147,8 +177,17 @@ export default function CategoryDetailPage() {
     );
   }
 
-  // Calcular estadísticas
-  const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  // Filtrar gastos por mes y año (solo si selectedMonth está inicializado)
+  const filteredExpenses = selectedMonth !== '' ? expenses.filter(expense => {
+    const expenseDate = expense.date.toDate ? expense.date.toDate() : new Date(expense.date as any);
+    const expenseMonth = expenseDate.getMonth();
+    const expenseYear = expenseDate.getFullYear();
+
+    return expenseMonth === parseInt(selectedMonth) && expenseYear === parseInt(selectedYear);
+  }) : [];
+
+  // Calcular estadísticas con gastos filtrados
+  const totalSpent = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const limit = category.monthly_limit;
   const percentage = limit > 0 ? (totalSpent / limit) * 100 : 0;
   const isOverLimit = totalSpent > limit && limit > 0;
@@ -170,7 +209,7 @@ export default function CategoryDetailPage() {
               Volver a Categorías
             </Button>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="pb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -194,6 +233,49 @@ export default function CategoryDetailPage() {
                 <Plus className="w-5 h-5 mr-2" />
                 Nuevo Gasto
               </Button>
+            </div>
+
+            {/* Filtros de mes y año */}
+            <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-6">
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Filtrar por:
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 flex-1">
+                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-[180px] bg-white dark:bg-gray-900">
+                      <SelectValue placeholder="Selecciona mes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthNames.map((month, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-[140px] bg-white dark:bg-gray-900">
+                      <SelectValue placeholder="Año" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Mostrando: <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {monthNames[parseInt(selectedMonth)]} {selectedYear}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Tarjeta de resumen */}
@@ -287,24 +369,24 @@ export default function CategoryDetailPage() {
           </div>
 
           {/* Lista de gastos */}
-          {expenses.length === 0 ? (
+          {filteredExpenses.length === 0 ? (
             <div className="text-center py-20">
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto">
                 <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                   <TrendingDown className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                  No hay gastos en esta categoría
+                  No hay gastos para este período
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Aún no has registrado gastos para "{category.name}"
+                  No hay gastos registrados en "{category.name}" para {monthNames[parseInt(selectedMonth)]} {selectedYear}
                 </p>
                 <Button
                   onClick={() => setIsFormOpen(true)}
                   className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold shadow-lg shadow-red-500/50 dark:shadow-red-900/50"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  Registrar Primer Gasto
+                  Registrar Gasto
                 </Button>
               </div>
             </div>
@@ -312,12 +394,11 @@ export default function CategoryDetailPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                  Gastos Registrados ({expenses.length})
+                  Gastos de {monthNames[parseInt(selectedMonth)]} ({filteredExpenses.length})
                 </h2>
-
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {expenses.map((expense) => (
+                {filteredExpenses.map((expense) => (
                   <ExpenseCard
                     key={expense.uid}
                     expense={expense}

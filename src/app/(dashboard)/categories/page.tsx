@@ -270,6 +270,8 @@ export default function CategoriesPage() {
                   spent={expensesByCategory[category.uid] || 0}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
                 />
               ))}
           </div>

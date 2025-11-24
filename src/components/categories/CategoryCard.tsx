@@ -10,9 +10,11 @@ interface CategoryCardProps {
   spent?: number;
   onEdit: (category: Category) => void;
   onDelete: (uid: string) => void;
+  selectedMonth?: number;
+  selectedYear?: number;
 }
 
-export default function CategoryCard({ category, spent = 0, onEdit, onDelete }: CategoryCardProps) {
+export default function CategoryCard({ category, spent = 0, onEdit, onDelete, selectedMonth, selectedYear }: CategoryCardProps) {
   const router = useRouter();
   const limit = category.monthly_limit;
   const percentage = limit > 0 ? (spent / limit) * 100 : 0;
@@ -20,7 +22,12 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete }: 
   const isNearLimit = percentage >= 80 && !isOverLimit && limit > 0;
 
   const handleCardClick = () => {
-    router.push(`/categories/${category.uid}`);
+    // Pass month and year as URL parameters
+    const params = new URLSearchParams();
+    if (selectedMonth !== undefined) params.set('month', selectedMonth.toString());
+    if (selectedYear !== undefined) params.set('year', selectedYear.toString());
+    const url = `/categories/${category.uid}${params.toString() ? `?${params.toString()}` : ''}`;
+    router.push(url);
   };
 
   const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
