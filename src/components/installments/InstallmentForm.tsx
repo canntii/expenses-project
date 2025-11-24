@@ -307,7 +307,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                 💡 Información calculada:
               </p>
               <div className="space-y-1">
-                {formData.tax > 0 && (
+                {(typeof formData.tax === 'number' && formData.tax > 0) && (
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Total con impuesto: <span className="font-semibold">
                       {calculateTotalWithTax().toLocaleString()} {formData.currency}
