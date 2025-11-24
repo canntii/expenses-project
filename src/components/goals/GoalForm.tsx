@@ -98,6 +98,7 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
                 type="number"
                 min="0"
                 step="0.01"
+                placeholder="1000000"
                 value={formData.targetAmount || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, targetAmount: parseFloat(e.target.value) || 0 })

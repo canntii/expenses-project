@@ -35,7 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!userData && retryCount < 3) {
         // Esperar un poco más en cada reintento (300ms, 600ms, 900ms)
         const delay = (retryCount + 1) * 300;
-        console.log(`Usuario no encontrado, reintentando en ${delay}ms... (intento ${retryCount + 1}/3)`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return loadUserData(fbUser, retryCount + 1);
       }

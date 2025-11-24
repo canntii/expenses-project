@@ -33,15 +33,24 @@ interface InstallmentFormProps {
 
 export default function InstallmentForm({ open, onClose, onSubmit, installment, categories }: InstallmentFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    description: string;
+    category_id: string;
+    total_amount: number | '';
+    installments: number | '';
+    current_installment: number | '';
+    currency: string;
+    start_date: string;
+    tax: number | '';
+  }>({
     description: '',
     category_id: '',
-    total_amount: 0,
+    total_amount: '',
     installments: 12,
     current_installment: 0,
     currency: 'CRC',
     start_date: '',
-    tax: 0,
+    tax: '',
   });
 
   useEffect(() => {
@@ -65,26 +74,32 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       setFormData({
         description: '',
         category_id: '',
-        total_amount: 0,
+        total_amount: '',
         installments: 12,
         current_installment: 0,
         currency: 'CRC',
         start_date: dateToLocalString(new Date()),
-        tax: 0,
+        tax: '',
       });
     }
   }, [installment, open]);
 
   const calculateMonthlyAmount = () => {
-    if (formData.installments > 0) {
-      const totalWithTax = formData.total_amount + (formData.total_amount * formData.tax / 100);
-      return totalWithTax / formData.installments;
+    const total = typeof formData.total_amount === 'number' ? formData.total_amount : 0;
+    const tax = typeof formData.tax === 'number' ? formData.tax : 0;
+    const installmentsCount = typeof formData.installments === 'number' ? formData.installments : 0;
+
+    if (installmentsCount > 0 && total > 0) {
+      const totalWithTax = total + (total * tax / 100);
+      return totalWithTax / installmentsCount;
     }
     return 0;
   };
 
   const calculateTotalWithTax = () => {
-    return formData.total_amount + (formData.total_amount * formData.tax / 100);
+    const total = typeof formData.total_amount === 'number' ? formData.total_amount : 0;
+    const tax = typeof formData.tax === 'number' ? formData.tax : 0;
+    return total + (total * tax / 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,11 +110,11 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       return;
     }
 
-    if (formData.total_amount <= 0) {
+    if (!formData.total_amount || (typeof formData.total_amount === 'number' && formData.total_amount <= 0)) {
       return;
     }
 
-    if (formData.installments <= 0) {
+    if (!formData.installments || (typeof formData.installments === 'number' && formData.installments <= 0)) {
       return;
     }
 
@@ -119,13 +134,13 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       await onSubmit({
         description: formData.description,
         category_id: formData.category_id,
-        total_amount: formData.total_amount,
-        installments: formData.installments,
-        current_installment: formData.current_installment,
+        total_amount: typeof formData.total_amount === 'number' ? formData.total_amount : parseFloat(formData.total_amount),
+        installments: typeof formData.installments === 'number' ? formData.installments : parseInt(formData.installments),
+        current_installment: typeof formData.current_installment === 'number' ? formData.current_installment : parseInt(formData.current_installment as string),
         monthly_amount: monthly_amount,
         currency: formData.currency,
         start_date: Timestamp.fromDate(startDateObj),
-        tax: formData.tax,
+        tax: typeof formData.tax === 'number' ? formData.tax : (formData.tax === '' ? 0 : parseFloat(formData.tax)),
       });
     } catch (error) {
       console.error('Error submitting installment:', error);
@@ -188,10 +203,10 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="0.00"
+                placeholder="13"
                 value={formData.tax}
                 onChange={(e) =>
-                  setFormData({ ...formData, tax: parseFloat(e.target.value) || 0 })
+                  setFormData({ ...formData, tax: e.target.value === '' ? '' : parseFloat(e.target.value) })
                 }
                 className="bg-white dark:bg-gray-900"
               />
@@ -208,10 +223,10 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="0.00"
+                  placeholder="500000"
                   value={formData.total_amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, total_amount: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, total_amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required
@@ -249,7 +264,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                   placeholder="12"
                   value={formData.installments}
                   onChange={(e) =>
-                    setFormData({ ...formData, installments: parseInt(e.target.value) || 1 })
+                    setFormData({ ...formData, installments: e.target.value === '' ? '' : parseInt(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required
@@ -262,11 +277,11 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                   id="current_installment"
                   type="number"
                   min="0"
-                  max={formData.installments}
+                  max={typeof formData.installments === 'number' ? formData.installments : undefined}
                   placeholder="0"
                   value={formData.current_installment}
                   onChange={(e) =>
-                    setFormData({ ...formData, current_installment: parseInt(e.target.value) || 0 })
+                    setFormData({ ...formData, current_installment: e.target.value === '' ? '' : parseInt(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required

@@ -33,9 +33,15 @@ interface ExpenseFormProps {
 
 export default function ExpenseForm({ open, onClose, onSubmit, expense, categories }: ExpenseFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    categoryId: string;
+    amount: number | '';
+    currency: string;
+    date: string;
+    note: string;
+  }>({
     categoryId: '',
-    amount: 0,
+    amount: '',
     currency: 'CRC',
     date: '',
     note: '',
@@ -62,7 +68,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
 
       setFormData({
         categoryId: defaultCategoryId,
-        amount: 0,
+        amount: '',
         currency: defaultCurrency,
         date: dateToLocalString(new Date()),
         note: '',
@@ -74,7 +80,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
     e.preventDefault();
 
     // Validaciones
-    if (formData.amount <= 0) {
+    if (!formData.amount || formData.amount <= 0) {
       return;
     }
 
@@ -145,10 +151,10 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="0.00"
+                  placeholder="15000"
                   value={formData.amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required

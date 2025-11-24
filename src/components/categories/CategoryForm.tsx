@@ -29,12 +29,18 @@ interface CategoryFormProps {
 
 export default function CategoryForm({ open, onClose, onSubmit, category }: CategoryFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    currency: string;
+    monthly_limit: number | '';
+    type: string;
+    activeMonths: number[];
+  }>({
     name: '',
     currency: 'CRC',
-    monthly_limit: 0,
+    monthly_limit: '',
     type: 'fixed',
-    activeMonths: [] as number[],
+    activeMonths: [],
   });
 
   const monthNames = [
@@ -55,7 +61,7 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
       setFormData({
         name: '',
         currency: 'CRC',
-        monthly_limit: 0,
+        monthly_limit: '',
         type: 'fixed',
         activeMonths: [],
       });
@@ -82,7 +88,9 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
     e.preventDefault();
 
     // Validación adicional
-    if (formData.monthly_limit < 0) {
+    const limitValue = typeof formData.monthly_limit === 'number' ? formData.monthly_limit : (formData.monthly_limit === '' ? 0 : parseFloat(formData.monthly_limit));
+
+    if (limitValue < 0) {
       return;
     }
 
@@ -92,7 +100,13 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
 
     setLoading(true);
     try {
-      await onSubmit(formData);
+      await onSubmit({
+        name: formData.name,
+        currency: formData.currency,
+        monthly_limit: limitValue,
+        type: formData.type,
+        activeMonths: formData.activeMonths,
+      });
     } catch (error) {
       console.error('Error submitting category:', error);
     } finally {
@@ -171,10 +185,10 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="0.00"
+                  placeholder="50000"
                   value={formData.monthly_limit}
                   onChange={(e) =>
-                    setFormData({ ...formData, monthly_limit: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, monthly_limit: e.target.value === '' ? '' : parseFloat(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required

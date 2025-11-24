@@ -30,9 +30,14 @@ interface IncomeFormProps {
 
 export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFormProps) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    source: string;
+    amount: number | '';
+    currency: string;
+    receivedAt: string;
+  }>({
     source: '',
-    amount: 0,
+    amount: '',
     currency: 'CRC',
     receivedAt: '',
   });
@@ -48,7 +53,7 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
     } else {
       setFormData({
         source: '',
-        amount: 0,
+        amount: '',
         currency: 'CRC',
         receivedAt: dateToLocalString(new Date()),
       });
@@ -59,7 +64,7 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
     e.preventDefault();
 
     // Validación adicional
-    if (formData.amount <= 0) {
+    if (!formData.amount || (typeof formData.amount === 'number' && formData.amount <= 0)) {
       return;
     }
 
@@ -76,7 +81,7 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
       const receivedAtDate = createLocalDate(formData.receivedAt);
       await onSubmit({
         source: formData.source,
-        amount: formData.amount,
+        amount: typeof formData.amount === 'number' ? formData.amount : parseFloat(formData.amount as string),
         currency: formData.currency,
         receivedAt: Timestamp.fromDate(receivedAtDate),
       });
@@ -122,10 +127,10 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="0.00"
+                  placeholder="450000"
                   value={formData.amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                    setFormData({ ...formData, amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
                   }
                   className="bg-white dark:bg-gray-900"
                   required

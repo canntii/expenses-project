@@ -19,17 +19,21 @@ export const createUserDocument = async (user: User) => {
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
-      const userData: UserData = {
+      const userData: any = {
         uid: user.uid,
         email: user.email || '',
         name: user.displayName || '',
-        photoURL: user.photoURL || undefined,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
 
+      // Solo agregar photoURL si existe (evitar undefined en Firestore)
+      if (user.photoURL) {
+        userData.photoURL = user.photoURL;
+      }
+
       await setDoc(userRef, userData);
-      return userData;
+      return userData as UserData;
     }
 
     return userDoc.data() as UserData;
