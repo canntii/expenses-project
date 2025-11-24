@@ -56,7 +56,8 @@ export default function LoginPage() {
       loginRateLimiter.recordSuccess(formData.email);
 
       await createUserDocument(user);
-      router.push('/');
+      // No redirigir manualmente - dejar que GuestRoute lo haga
+      // cuando el AuthContext detecte al usuario autenticado
     } catch (err: any) {
       // Mostrar intentos restantes
       const attemptInfo = loginRateLimiter.getAttemptInfo(formData.email);
@@ -74,7 +75,6 @@ export default function LoginPage() {
         setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
       }
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };
@@ -85,11 +85,11 @@ export default function LoginPage() {
     try {
       const user = await signInWithGoogle();
       await createUserDocument(user);
-      router.push('/');
+      // No redirigir manualmente - dejar que GuestRoute lo haga
+      // cuando el AuthContext detecte al usuario autenticado
     } catch (err) {
       setError('Error al iniciar sesión con Google. Por favor, intenta de nuevo.');
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };

@@ -55,7 +55,8 @@ export default function RegisterPage() {
     try {
       const user = await signUpWithEmail(formData.email, formData.password, formData.name);
       await createUserDocument(user);
-      router.push('/');
+      // No redirigir manualmente - dejar que GuestRoute lo haga
+      // cuando el AuthContext detecte al usuario autenticado
     } catch (err: any) {
       if (err.code === 'auth/email-already-in-use') {
         setError('Este correo ya está registrado. Intenta iniciar sesión.');
@@ -78,11 +79,11 @@ export default function RegisterPage() {
     try {
       const user = await signInWithGoogle();
       await createUserDocument(user);
-      router.push('/');
+      // No redirigir manualmente - dejar que GuestRoute lo haga
+      // cuando el AuthContext detecte al usuario autenticado
     } catch (err) {
       setError('Error al registrarse con Google. Por favor, intenta de nuevo.');
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };
