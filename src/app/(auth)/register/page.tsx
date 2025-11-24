@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithGoogle, signUpWithEmail } from '@/lib/firebase/auth';
 import { createUserDocument } from '@/lib/firebase/firestore/users';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,6 +20,7 @@ import GuestRoute from '@/components/auth/GuestRoute';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -27,6 +29,14 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+
+  // Cuando el usuario se autentica correctamente, GuestRoute redirige automáticamente
+  useEffect(() => {
+    if (user && loading) {
+      // El usuario se autenticó exitosamente, GuestRoute se encargará de redirigir
+      setLoading(false);
+    }
+  }, [user, loading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
