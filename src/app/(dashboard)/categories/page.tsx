@@ -16,6 +16,7 @@ import { doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import CategoryCard from '@/components/categories/CategoryCard';
 import CategoryForm from '@/components/categories/CategoryForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -31,6 +32,8 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   // Estado para el filtro de mes
   const currentDate = new Date();
@@ -118,15 +121,23 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDelete = async (uid: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
+  const handleDelete = (uid: string) => {
+    setCategoryToDelete(uid);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
     try {
-      await deleteCategoryDocument(uid);
+      await deleteCategoryDocument(categoryToDelete);
       await loadCategories();
       toast.success('Categoría eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting category:', error);
       toast.error('Error al eliminar la categoría');
+    } finally {
+      setConfirmDialogOpen(false);
+      setCategoryToDelete(null);
     }
   };
 
@@ -282,6 +293,17 @@ export default function CategoriesPage() {
           onClose={handleCloseForm}
           onSubmit={selectedCategory ? handleUpdate : handleCreate}
           category={selectedCategory}
+        />
+
+        <ConfirmDialog
+          open={confirmDialogOpen}
+          onOpenChange={setConfirmDialogOpen}
+          title="Eliminar Categoría"
+          description="¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer."
+          onConfirm={confirmDelete}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          variant="destructive"
         />
       </div>
     </div>

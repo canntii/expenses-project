@@ -14,6 +14,7 @@ import {
 import { doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import GoalCard from '@/components/goals/GoalCard';
 import GoalForm from '@/components/goals/GoalForm';
 import ContributionDialog from '@/components/goals/ContributionDialog';
@@ -29,6 +30,8 @@ export default function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isContributionOpen, setIsContributionOpen] = useState(false);
   const [goalForContribution, setGoalForContribution] = useState<Goal | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
 
   const loadGoals = useCallback(async () => {
     if (!user) return;
@@ -95,15 +98,23 @@ export default function GoalsPage() {
     }
   };
 
-  const handleDelete = async (uid: string) => {
-    if (!confirm('Estas seguro de que deseas eliminar este objetivo?')) return;
+  const handleDelete = (uid: string) => {
+    setGoalToDelete(uid);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!goalToDelete) return;
     try {
-      await deleteGoalDocument(uid);
+      await deleteGoalDocument(goalToDelete);
       await loadGoals();
       toast.success('Objetivo eliminado exitosamente');
     } catch (error) {
       console.error('Error deleting goal:', error);
       toast.error('Error al eliminar el objetivo');
+    } finally {
+      setConfirmDialogOpen(false);
+      setGoalToDelete(null);
     }
   };
 
@@ -309,6 +320,17 @@ export default function GoalsPage() {
             onClose={() => setIsContributionOpen(false)}
             onSubmit={handleContributionSubmit}
             goal={goalForContribution}
+          />
+
+          <ConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title="Eliminar Objetivo"
+            description="¿Estás seguro de que deseas eliminar este objetivo? Esta acción no se puede deshacer."
+            onConfirm={confirmDelete}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            variant="destructive"
           />
         </div>
       </div>

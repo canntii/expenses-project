@@ -16,6 +16,7 @@ import { getUserCategories } from '@/lib/firebase/firestore/categories';
 import { doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import InstallmentCard from '@/components/installments/InstallmentCard';
 import InstallmentForm from '@/components/installments/InstallmentForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -29,6 +30,8 @@ export default function InstallmentsPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedInstallment, setSelectedInstallment] = useState<Installment | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [installmentToDelete, setInstallmentToDelete] = useState<string | null>(null);
 
   const loadInstallments = useCallback(async () => {
     if (!user) return;
@@ -119,15 +122,23 @@ export default function InstallmentsPage() {
     }
   };
 
-  const handleDelete = async (uid: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta cuota?')) return;
+  const handleDelete = (uid: string) => {
+    setInstallmentToDelete(uid);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!installmentToDelete) return;
     try {
-      await deleteInstallmentDocument(uid);
+      await deleteInstallmentDocument(installmentToDelete);
       await loadInstallments();
       toast.success('Cuota eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting installment:', error);
       toast.error('Error al eliminar la cuota');
+    } finally {
+      setConfirmDialogOpen(false);
+      setInstallmentToDelete(null);
     }
   };
 
@@ -317,6 +328,17 @@ export default function InstallmentsPage() {
             onSubmit={selectedInstallment ? handleUpdate : handleCreate}
             installment={selectedInstallment}
             categories={categories}
+          />
+
+          <ConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title="Eliminar Cuota"
+            description="¿Estás seguro de que deseas eliminar esta cuota? Esta acción no se puede deshacer."
+            onConfirm={confirmDelete}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            variant="destructive"
           />
         </div>
       </div>

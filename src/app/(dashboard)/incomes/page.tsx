@@ -13,6 +13,7 @@ import { doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import IncomeCard from '@/components/incomes/IncomeCard';
 import IncomeForm from '@/components/incomes/IncomeForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -27,6 +28,8 @@ export default function IncomesPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<Income | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [incomeToDelete, setIncomeToDelete] = useState<string | null>(null);
 
   // Estado para el filtro de mes
   const currentDate = new Date();
@@ -101,15 +104,23 @@ export default function IncomesPage() {
     }
   };
 
-  const handleDelete = async (uid: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este ingreso?')) return;
+  const handleDelete = (uid: string) => {
+    setIncomeToDelete(uid);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!incomeToDelete) return;
     try {
-      await deleteIncomeDocument(uid);
+      await deleteIncomeDocument(incomeToDelete);
       await loadIncomes();
       toast.success('Ingreso eliminado exitosamente');
     } catch (error) {
       console.error('Error deleting income:', error);
       toast.error('Error al eliminar el ingreso');
+    } finally {
+      setConfirmDialogOpen(false);
+      setIncomeToDelete(null);
     }
   };
 
@@ -282,6 +293,17 @@ export default function IncomesPage() {
             onClose={handleCloseForm}
             onSubmit={selectedIncome ? handleUpdate : handleCreate}
             income={selectedIncome}
+          />
+
+          <ConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title="Eliminar Ingreso"
+            description="¿Estás seguro de que deseas eliminar este ingreso? Esta acción no se puede deshacer."
+            onConfirm={confirmDelete}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            variant="destructive"
           />
         </div>
       </div>

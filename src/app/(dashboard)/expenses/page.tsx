@@ -17,6 +17,7 @@ import { db } from '@/lib/firebase/client';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import ExpenseCard from '@/components/expenses/ExpenseCard';
 import ExpenseForm from '@/components/expenses/ExpenseForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -32,6 +33,8 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
 
   // Estado para el filtro de mes
   const currentDate = new Date();
@@ -126,14 +129,22 @@ export default function ExpensesPage() {
     }
   };
 
-  const handleDelete = async (uid: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este gasto?')) return;
+  const handleDelete = (uid: string) => {
+    setExpenseToDelete(uid);
+    setConfirmDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!expenseToDelete) return;
     try {
-      await deleteExpenseDocument(uid);
+      await deleteExpenseDocument(expenseToDelete);
       await loadExpenses();
       toast.success('Gasto eliminado exitosamente');
     } catch (error) {
       toast.error('Error al eliminar el gasto');
+    } finally {
+      setConfirmDialogOpen(false);
+      setExpenseToDelete(null);
     }
   };
 
@@ -418,6 +429,17 @@ export default function ExpensesPage() {
             onSubmit={selectedExpense ? handleUpdate : handleCreate}
             expense={selectedExpense}
             categories={categories}
+          />
+
+          <ConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title="Eliminar Gasto"
+            description="¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer."
+            onConfirm={confirmDelete}
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            variant="destructive"
           />
         </div>
       </div>
