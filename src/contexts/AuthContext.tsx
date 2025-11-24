@@ -27,9 +27,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadUserData = async (fbUser: FirebaseUser) => {
+  const loadUserData = async (fbUser: FirebaseUser, retryCount = 0) => {
     try {
       const userData = await getUserDocument(fbUser.uid);
+
+      // Si no se encuentra el documento y aún tenemos reintentos disponibles
+      if (!userData && retryCount < 3) {
+        // Esperar un poco más en cada reintento (300ms, 600ms, 900ms)
+        const delay = (retryCount + 1) * 300;
+        console.log(`Usuario no encontrado, reintentando en ${delay}ms... (intento ${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return loadUserData(fbUser, retryCount + 1);
+      }
+
       setUser(userData);
     } catch (error) {
       console.error('Error loading user data:', error);

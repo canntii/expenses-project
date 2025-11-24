@@ -120,7 +120,7 @@ export default function LoginPage() {
         <Card className="shadow-xl border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Iniciar Sesión Test Deploy
+              Iniciar Sesión Test Deploy v2
             </CardTitle>
             <CardDescription className="text-center">
               Accede a tu cuenta para continuar
