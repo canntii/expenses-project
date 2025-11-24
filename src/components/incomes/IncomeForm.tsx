@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
+import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 
 interface IncomeFormProps {
   open: boolean;
@@ -38,19 +39,18 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
 
   useEffect(() => {
     if (income) {
-      const receivedDate = income.receivedAt.toDate ? income.receivedAt.toDate() : new Date(income.receivedAt as any);
       setFormData({
         source: income.source,
         amount: income.amount,
         currency: income.currency,
-        receivedAt: receivedDate.toISOString().split('T')[0],
+        receivedAt: dateToLocalString(income.receivedAt),
       });
     } else {
       setFormData({
         source: '',
         amount: 0,
         currency: 'CRC',
-        receivedAt: new Date().toISOString().split('T')[0],
+        receivedAt: dateToLocalString(new Date()),
       });
     }
   }, [income, open]);
@@ -73,7 +73,7 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
 
     setLoading(true);
     try {
-      const receivedAtDate = new Date(formData.receivedAt);
+      const receivedAtDate = createLocalDate(formData.receivedAt);
       await onSubmit({
         source: formData.source,
         amount: formData.amount,

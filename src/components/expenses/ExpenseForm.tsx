@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
+import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 
 interface ExpenseFormProps {
   open: boolean;
@@ -42,7 +43,6 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
 
   useEffect(() => {
     if (expense) {
-      const expenseDate = expense.date.toDate ? expense.date.toDate() : new Date(expense.date as any);
       // Obtener el ID de la categoría desde la referencia
       const categoryId = typeof expense.categoryId === 'string'
         ? expense.categoryId
@@ -52,7 +52,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
         categoryId: categoryId,
         amount: expense.amount,
         currency: expense.currency,
-        date: expenseDate.toISOString().split('T')[0],
+        date: dateToLocalString(expense.date),
         note: expense.note || '',
       });
     } else {
@@ -64,7 +64,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
         categoryId: defaultCategoryId,
         amount: 0,
         currency: defaultCurrency,
-        date: new Date().toISOString().split('T')[0],
+        date: dateToLocalString(new Date()),
         note: '',
       });
     }
@@ -88,7 +88,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
 
     setLoading(true);
     try {
-      const dateObj = new Date(formData.date);
+      const dateObj = createLocalDate(formData.date);
       await onSubmit({
         categoryId: formData.categoryId,
         amount: formData.amount,

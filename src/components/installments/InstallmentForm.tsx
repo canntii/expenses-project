@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
+import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 
 interface InstallmentFormProps {
   open: boolean;
@@ -45,7 +46,6 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
 
   useEffect(() => {
     if (installment) {
-      const startDate = installment.start_date.toDate ? installment.start_date.toDate() : new Date(installment.start_date as any);
       // Obtener el ID de la categoría desde la referencia
       const categoryId = typeof installment.category_id === 'string'
         ? installment.category_id
@@ -58,7 +58,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
         installments: installment.installments,
         current_installment: installment.current_installment,
         currency: installment.currency,
-        start_date: startDate.toISOString().split('T')[0],
+        start_date: dateToLocalString(installment.start_date),
         tax: installment.tax || 0,
       });
     } else {
@@ -69,7 +69,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
         installments: 12,
         current_installment: 0,
         currency: 'CRC',
-        start_date: new Date().toISOString().split('T')[0],
+        start_date: dateToLocalString(new Date()),
         tax: 0,
       });
     }
@@ -113,7 +113,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
 
     setLoading(true);
     try {
-      const startDateObj = new Date(formData.start_date);
+      const startDateObj = createLocalDate(formData.start_date);
       const monthly_amount = calculateMonthlyAmount();
 
       await onSubmit({

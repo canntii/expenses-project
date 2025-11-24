@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 
 interface GoalFormProps {
   open: boolean;
@@ -35,15 +36,11 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
 
   useEffect(() => {
     if (goal) {
-      const dueDate = goal.dueDate instanceof Date
-        ? goal.dueDate
-        : (goal.dueDate as any).toDate();
-
       setFormData({
         title: goal.title,
         targetAmount: goal.targetAmount,
         currency: goal.currency,
-        dueDate: dueDate.toISOString().split('T')[0],
+        dueDate: dateToLocalString(goal.dueDate),
       });
     } else {
       setFormData({
@@ -62,7 +59,7 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
     try {
       await onSubmit({
         ...formData,
-        dueDate: new Date(formData.dueDate),
+        dueDate: createLocalDate(formData.dueDate),
       });
       onClose();
     } catch (error) {
