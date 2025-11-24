@@ -7,25 +7,35 @@ export function middleware(request: NextRequest) {
   // ===== Content Security Policy =====
   // Define qué recursos pueden ser cargados y desde dónde
   const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://accounts.google.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https: http:;
-    font-src 'self' data: https://fonts.gstatic.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    frame-src https://accounts.google.com https://www.google.com;
-    connect-src 'self'
-      https://*.firebaseio.com
-      https://*.googleapis.com
-      https://identitytoolkit.googleapis.com
-      https://securetoken.googleapis.com
-      https://firestore.googleapis.com
-      wss://*.firebaseio.com;
-    upgrade-insecure-requests;
-  `.replace(/\s{2,}/g, ' ').trim();
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline'
+    https://www.gstatic.com
+    https://www.google.com
+    https://accounts.google.com
+    https://apis.google.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  img-src 'self' blob: data: https: http:;
+  font-src 'self' data: https://fonts.gstatic.com;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self';
+  frame-ancestors 'none';
+  frame-src
+    'self'
+    https://accounts.google.com
+    https://www.google.com
+    https://apis.google.com
+    https://expenses-455bc.firebaseapp.com
+    https://*.firebaseapp.com;
+  connect-src 'self'
+    https://*.firebaseio.com
+    https://*.googleapis.com
+    https://identitytoolkit.googleapis.com
+    https://securetoken.googleapis.com
+    https://firestore.googleapis.com
+    wss://*.firebaseio.com;
+  upgrade-insecure-requests;
+`.replace(/\s{2,}/g, ' ').trim();
 
   response.headers.set('Content-Security-Policy', cspHeader);
 
