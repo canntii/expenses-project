@@ -1,0 +1,74 @@
+rules_version = '2';
+
+// REGLAS DE TEST ULTRA SIMPLES
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users - debe funcionar
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Categories - VERSION SIMPLE SIN VALIDACION
+    match /categories/{categoryId} {
+      // Permitir lectura si está autenticado Y el userId del documento coincide con el auth.uid
+      allow read: if request.auth != null &&
+                     resource.data.userId != null &&
+                     resource.data.userId.path == 'users/' + request.auth.uid;
+
+      // Permitir escritura si está autenticado Y el userId que estás enviando coincide
+      allow write: if request.auth != null &&
+                      request.resource.data.userId != null &&
+                      request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // Expenses - VERSION SIMPLE
+    match /expenses/{expenseId} {
+      allow read: if request.auth != null &&
+                     resource.data.userId != null &&
+                     resource.data.userId.path == 'users/' + request.auth.uid;
+
+      allow write: if request.auth != null &&
+                      request.resource.data.userId != null &&
+                      request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // Income - VERSION SIMPLE
+    match /income/{incomeId} {
+      allow read: if request.auth != null &&
+                     resource.data.userId != null &&
+                     resource.data.userId.path == 'users/' + request.auth.uid;
+
+      allow write: if request.auth != null &&
+                      request.resource.data.userId != null &&
+                      request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // Installments - VERSION SIMPLE
+    match /installments/{installmentId} {
+      allow read: if request.auth != null &&
+                     resource.data.userId != null &&
+                     resource.data.userId.path == 'users/' + request.auth.uid;
+
+      allow write: if request.auth != null &&
+                      request.resource.data.userId != null &&
+                      request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // Goals - VERSION SIMPLE
+    match /goals/{goalId} {
+      allow read: if request.auth != null &&
+                     resource.data.userId != null &&
+                     resource.data.userId.path == 'users/' + request.auth.uid;
+
+      allow write: if request.auth != null &&
+                      request.resource.data.userId != null &&
+                      request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // Bloquear todo lo demás
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

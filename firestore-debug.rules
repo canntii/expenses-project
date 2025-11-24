@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// REGLAS DE DEBUG - Para identificar el problema
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(data) {
+      return data.userId == request.auth.uid;
+    }
+
+    // ===== REGLAS SIMPLES PARA DEBUG =====
+
+    match /users/{userId} {
+      allow read, create, update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Categorías - Solo autenticación y ownership, SIN validación
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    // Expenses - Solo autenticación y ownership
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    // Income - Solo autenticación y ownership
+    match /income/{incomeId} {
+      allow read: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    // Installments - Solo autenticación y ownership
+    match /installments/{installmentId} {
+      allow read: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    // Goals - Solo autenticación y ownership
+    match /goals/{goalId} {
+      allow read: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isOwner(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

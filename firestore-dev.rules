@@ -1,0 +1,181 @@
+rules_version = '2';
+
+// REGLAS DE PRODUCCIÓN CON VALIDACIÓN
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== FUNCIONES HELPER =====
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isResourceOwner() {
+      return resource.data.userId != null &&
+             resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    function isRequestResourceOwner() {
+      return request.resource.data.userId != null &&
+             request.resource.data.userId.path == 'users/' + request.auth.uid;
+    }
+
+    // ===== VALIDACIÓN DE DATOS =====
+
+    // Validar categorías
+    function isValidCategory(data) {
+      return data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() <= 100 &&
+             data.monthly_limit is number &&
+             data.monthly_limit >= 0 &&
+             data.monthly_limit < 1000000000 &&
+             data.currency in ['CRC', 'USD', 'EUR', 'MXN', 'COP', 'ARS'] &&
+             data.type in ['fixed', 'variable'] &&
+             data.userId is path;
+    }
+
+    // Validar gastos
+    function isValidExpense(data) {
+      return data.amount is number &&
+             data.amount > 0 &&
+             data.amount < 1000000000 &&
+             data.currency in ['CRC', 'USD', 'EUR', 'MXN', 'COP', 'ARS'] &&
+             data.categoryId is path &&
+             data.userId is path &&
+             data.date is timestamp;
+    }
+
+    // Validar ingresos
+    function isValidIncome(data) {
+      return data.amount is number &&
+             data.amount > 0 &&
+             data.amount < 1000000000 &&
+             data.currency in ['CRC', 'USD', 'EUR', 'MXN', 'COP', 'ARS'] &&
+             data.source is string &&
+             data.source.size() > 0 &&
+             data.source.size() <= 100 &&
+             data.userId is path &&
+             data.receivedAt is timestamp;
+    }
+
+    // Validar installments
+    function isValidInstallment(data) {
+      return data.total_amount is number &&
+             data.total_amount > 0 &&
+             data.total_amount < 1000000000 &&
+             data.installments is int &&
+             data.installments > 0 &&
+             data.installments <= 360 &&
+             data.current_installment is int &&
+             data.current_installment >= 0 &&
+             data.current_installment <= data.installments &&
+             data.monthly_amount is number &&
+             data.monthly_amount > 0 &&
+             data.currency in ['CRC', 'USD', 'EUR', 'MXN', 'COP', 'ARS'] &&
+             data.description is string &&
+             data.description.size() > 0 &&
+             data.description.size() <= 500 &&
+             data.userId is path &&
+             data.category_id is path &&
+             data.start_date is timestamp &&
+             data.tax is number &&
+             data.tax >= 0 &&
+             data.tax <= 100;
+    }
+
+    // Validar objetivos (goals)
+    function isValidGoal(data) {
+      return data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() <= 100 &&
+             data.target_amount is number &&
+             data.target_amount > 0 &&
+             data.target_amount < 1000000000 &&
+             data.current_amount is number &&
+             data.current_amount >= 0 &&
+             data.current_amount <= data.target_amount &&
+             data.currency in ['CRC', 'USD', 'EUR', 'MXN', 'COP', 'ARS'] &&
+             data.userId is path;
+    }
+
+    // ===== REGLAS DE COLECCIONES =====
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+      allow delete: if false; // No permitir eliminar usuarios desde Firestore
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if isAuthenticated() && isResourceOwner();
+      allow create: if isAuthenticated() &&
+                       isRequestResourceOwner() &&
+                       isValidCategory(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isResourceOwner() &&
+                       isValidCategory(request.resource.data);
+      allow delete: if isAuthenticated() && isResourceOwner();
+    }
+
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && isResourceOwner();
+      allow create: if isAuthenticated() &&
+                       isRequestResourceOwner() &&
+                       isValidExpense(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isResourceOwner() &&
+                       isValidExpense(request.resource.data);
+      allow delete: if isAuthenticated() && isResourceOwner();
+    }
+
+    // Income collection
+    match /income/{incomeId} {
+      allow read: if isAuthenticated() && isResourceOwner();
+      allow create: if isAuthenticated() &&
+                       isRequestResourceOwner() &&
+                       isValidIncome(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isResourceOwner() &&
+                       isValidIncome(request.resource.data);
+      allow delete: if isAuthenticated() && isResourceOwner();
+    }
+
+    // Installments collection
+    match /installments/{installmentId} {
+      allow read: if isAuthenticated() && isResourceOwner();
+      allow create: if isAuthenticated() &&
+                       isRequestResourceOwner() &&
+                       isValidInstallment(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isResourceOwner() &&
+                       isValidInstallment(request.resource.data);
+      allow delete: if isAuthenticated() && isResourceOwner();
+    }
+
+    // Goals collection
+    match /goals/{goalId} {
+      allow read: if isAuthenticated() && isResourceOwner();
+      allow create: if isAuthenticated() &&
+                       isRequestResourceOwner() &&
+                       isValidGoal(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isResourceOwner() &&
+                       isValidGoal(request.resource.data);
+      allow delete: if isAuthenticated() && isResourceOwner();
+    }
+
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
