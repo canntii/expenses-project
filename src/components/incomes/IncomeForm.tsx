@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
+import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
+import { toast } from 'sonner';
 
 interface IncomeFormProps {
   open: boolean;
@@ -63,30 +65,37 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validación adicional
-    if (!formData.amount || (typeof formData.amount === 'number' && formData.amount <= 0)) {
-      return;
-    }
-
-    if (!formData.source.trim()) {
-      return;
-    }
-
-    if (!formData.receivedAt) {
-      return;
-    }
-
-    setLoading(true);
     try {
+      // Sanitizar y validar inputs
+      const sanitizedSource = sanitizeWithMaxLength(formData.source, 200);
+      const sanitizedAmount = sanitizeNumber(formData.amount);
+
+      if (!sanitizedSource || sanitizedSource.length < 2) {
+        toast.error('La fuente debe tener al menos 2 caracteres');
+        return;
+      }
+
+      if (!sanitizedAmount || sanitizedAmount <= 0) {
+        toast.error('El monto debe ser mayor a 0');
+        return;
+      }
+
+      if (!formData.receivedAt) {
+        toast.error('Debes seleccionar una fecha');
+        return;
+      }
+
+      setLoading(true);
       const receivedAtDate = createLocalDate(formData.receivedAt);
       await onSubmit({
-        source: formData.source,
-        amount: typeof formData.amount === 'number' ? formData.amount : parseFloat(formData.amount as string),
+        source: sanitizedSource,
+        amount: sanitizedAmount,
         currency: formData.currency,
         receivedAt: Timestamp.fromDate(receivedAtDate),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting income:', error);
+      toast.error(error.message || 'Error al guardar el ingreso');
     } finally {
       setLoading(false);
     }

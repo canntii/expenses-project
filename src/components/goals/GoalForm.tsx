@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
+import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
+import { toast } from 'sonner';
 
 interface GoalFormProps {
   open: boolean;
@@ -54,16 +56,38 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
+      // Sanitizar y validar inputs
+      const sanitizedTitle = sanitizeWithMaxLength(formData.title, 150);
+      const sanitizedAmount = sanitizeNumber(formData.targetAmount);
+
+      if (!sanitizedTitle || sanitizedTitle.length < 3) {
+        toast.error('El título debe tener al menos 3 caracteres');
+        return;
+      }
+
+      if (!sanitizedAmount || sanitizedAmount <= 0) {
+        toast.error('El monto objetivo debe ser mayor a 0');
+        return;
+      }
+
+      if (!formData.dueDate) {
+        toast.error('Debes seleccionar una fecha límite');
+        return;
+      }
+
+      setLoading(true);
       await onSubmit({
-        ...formData,
+        title: sanitizedTitle,
+        targetAmount: sanitizedAmount,
+        currency: formData.currency,
         dueDate: createLocalDate(formData.dueDate),
       });
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting form:', error);
+      toast.error(error.message || 'Error al guardar el objetivo');
     } finally {
       setLoading(false);
     }

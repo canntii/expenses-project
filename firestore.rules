@@ -156,6 +156,36 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
     }
 
+    // ===== SESSIONS =====
+
+    function isValidSession(data) {
+      return data.userId is string &&
+             data.sessionId is string &&
+             data.deviceInfo is string &&
+             data.userAgent is string;
+      // createdAt y lastActive vienen de serverTimestamp(), no los validamos aquí
+    }
+
+    match /activeSessions/{sessionDocId} {
+      // Crear sesión: solo el usuario dueño
+      allow create: if isAuthenticated() &&
+                    isOwner(request.resource.data.userId) &&
+                    isValidSession(request.resource.data);
+
+      // Leer sesiones (incluye get + queries con where()):
+      // solo puede leer sus propias sesiones
+      allow read: if isAuthenticated() &&
+                  isOwner(resource.data.userId);
+
+      // Actualizar (updateSessionActivity) solo si la sesión es suya
+      allow update: if isAuthenticated() &&
+                    isOwner(resource.data.userId);
+
+      // Borrar (revokeSession / enforceSessionLimit) solo si la sesión es suya
+      allow delete: if isAuthenticated() &&
+                    isOwner(resource.data.userId);
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

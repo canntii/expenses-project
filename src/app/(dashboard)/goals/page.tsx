@@ -21,6 +21,7 @@ import ContributionDialog from '@/components/goals/ContributionDialog';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Plus, Target, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 
 export default function GoalsPage() {
   const { user } = useAuth();
@@ -55,6 +56,17 @@ export default function GoalsPage() {
 
   const handleCreate = async (data: any) => {
     if (!user) return;
+
+    // Verificar rate limit para creación
+    const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const goalUid = `${user.uid}_${Date.now()}`;
 
@@ -79,7 +91,18 @@ export default function GoalsPage() {
   };
 
   const handleUpdate = async (data: any) => {
-    if (!selectedGoal) return;
+    if (!selectedGoal || !user) return;
+
+    // Verificar rate limit para actualización
+    const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       await updateGoalDocument(selectedGoal.uid, {
         title: data.title,
@@ -104,7 +127,20 @@ export default function GoalsPage() {
   };
 
   const confirmDelete = async () => {
-    if (!goalToDelete) return;
+    if (!goalToDelete || !user) return;
+
+    // Verificar rate limit para eliminación
+    const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      setConfirmDialogOpen(false);
+      setGoalToDelete(null);
+      return;
+    }
+
     try {
       await deleteGoalDocument(goalToDelete);
       await loadGoals();

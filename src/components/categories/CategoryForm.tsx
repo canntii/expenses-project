@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
+import { toast } from 'sonner';
 
 interface CategoryFormProps {
   open: boolean;
@@ -87,28 +89,32 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validación adicional
-    const limitValue = typeof formData.monthly_limit === 'number' ? formData.monthly_limit : (formData.monthly_limit === '' ? 0 : parseFloat(formData.monthly_limit));
-
-    if (limitValue < 0) {
-      return;
-    }
-
-    if (!formData.name.trim()) {
-      return;
-    }
-
-    setLoading(true);
     try {
+      // Sanitizar y validar inputs
+      const sanitizedName = sanitizeWithMaxLength(formData.name, 100);
+      const sanitizedLimit = sanitizeNumber(formData.monthly_limit);
+
+      if (!sanitizedName || sanitizedName.length < 2) {
+        toast.error('El nombre debe tener al menos 2 caracteres');
+        return;
+      }
+
+      if (sanitizedLimit < 0) {
+        toast.error('El límite mensual no puede ser negativo');
+        return;
+      }
+
+      setLoading(true);
       await onSubmit({
-        name: formData.name,
+        name: sanitizedName,
         currency: formData.currency,
-        monthly_limit: limitValue,
+        monthly_limit: sanitizedLimit,
         type: formData.type,
         activeMonths: formData.activeMonths,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting category:', error);
+      toast.error(error.message || 'Error al guardar la categoría');
     } finally {
       setLoading(false);
     }

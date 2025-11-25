@@ -21,6 +21,7 @@ import { Plus, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 
 export default function IncomesPage() {
   const { user } = useAuth();
@@ -66,6 +67,17 @@ export default function IncomesPage() {
 
   const handleCreate = async (data: UpdateIncomeData & { receivedAt: Timestamp }) => {
     if (!user) return;
+
+    // Verificar rate limit para creación
+    const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const incomeUid = `${user.uid}_${Date.now()}`;
 
@@ -90,7 +102,18 @@ export default function IncomesPage() {
   };
 
   const handleUpdate = async (data: UpdateIncomeData & { receivedAt: Timestamp }) => {
-    if (!selectedIncome) return;
+    if (!selectedIncome || !user) return;
+
+    // Verificar rate limit para actualización
+    const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       await updateIncomeDocument(selectedIncome.uid, data);
       await loadIncomes();
@@ -110,7 +133,20 @@ export default function IncomesPage() {
   };
 
   const confirmDelete = async () => {
-    if (!incomeToDelete) return;
+    if (!incomeToDelete || !user) return;
+
+    // Verificar rate limit para eliminación
+    const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      setConfirmDialogOpen(false);
+      setIncomeToDelete(null);
+      return;
+    }
+
     try {
       await deleteIncomeDocument(incomeToDelete);
       await loadIncomes();

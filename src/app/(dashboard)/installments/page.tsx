@@ -22,6 +22,7 @@ import InstallmentForm from '@/components/installments/InstallmentForm';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Plus, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 
 export default function InstallmentsPage() {
   const { user } = useAuth();
@@ -66,6 +67,17 @@ export default function InstallmentsPage() {
 
   const handleCreate = async (data: any) => {
     if (!user) return;
+
+    // Verificar rate limit para creación
+    const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const categoryRef = doc(db, 'categories', data.category_id);
       const installmentUid = `${user.uid}_${Date.now()}`;
@@ -96,7 +108,18 @@ export default function InstallmentsPage() {
   };
 
   const handleUpdate = async (data: any) => {
-    if (!selectedInstallment) return;
+    if (!selectedInstallment || !user) return;
+
+    // Verificar rate limit para actualización
+    const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const categoryRef = doc(db, 'categories', data.category_id);
 
@@ -128,7 +151,20 @@ export default function InstallmentsPage() {
   };
 
   const confirmDelete = async () => {
-    if (!installmentToDelete) return;
+    if (!installmentToDelete || !user) return;
+
+    // Verificar rate limit para eliminación
+    const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      setConfirmDialogOpen(false);
+      setInstallmentToDelete(null);
+      return;
+    }
+
     try {
       await deleteInstallmentDocument(installmentToDelete);
       await loadInstallments();

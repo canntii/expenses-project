@@ -5,11 +5,23 @@ import { User as FirebaseUser } from 'firebase/auth';
 import { User } from '@/lib/types/user';
 import { onAuthChange, signOut as firebaseSignOut } from '@/lib/firebase/auth';
 import { getUserDocument } from '@/lib/firebase/firestore/users';
+import { verifyUserToken } from '@/lib/firebase/tokenValidation';
+import {
+  registerSession,
+  revokeSession,
+  detectSuspiciousSessions,
+  getCurrentSessionId,
+  cleanupOldSessions,
+  enforceSessionLimit,
+  updateSessionActivity,
+} from '@/lib/firebase/firestore/sessions';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   user: User | null;
   loading: boolean;
+  sessionId: string | null;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -18,14 +30,16 @@ const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
   user: null,
   loading: true,
-  signOut: async () => {},
-  refreshUser: async () => {},
+  sessionId: null,
+  signOut: async () => { },
+  refreshUser: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const loadUserData = async (fbUser: FirebaseUser, retryCount = 0) => {
     try {
@@ -41,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(userData);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('Error loading user data:');
       setUser(null);
     }
   };
@@ -57,9 +71,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(fbUser);
 
       if (fbUser) {
+        // Verificar que el token sea válido
+        const isTokenValid = await verifyUserToken();
+
+        if (!isTokenValid) {
+          console.error('Token inválido');
+          await firebaseSignOut();
+          setFirebaseUser(null);
+          setUser(null);
+          setSessionId(null);
+          setLoading(false);
+
+          // Redirigir al login con razón
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login?reason=invalid-token';
+          }
+          return;
+        }
+
+        // Cargar datos del usuario
         await loadUserData(fbUser);
+
+        // Limitar sesiones
+        await enforceSessionLimit(fbUser.uid);
+
+
+        // Registrar nueva sesión
+        try {
+
+          let currentSessionId = getCurrentSessionId();
+
+
+          if (!currentSessionId) {
+            //No hay sesion guardada, asi que se crea una nueva
+            const newSessionId = await registerSession(fbUser.uid);
+            currentSessionId = newSessionId;
+          } else {
+            const updated = await updateSessionActivity();
+
+            if (!updated) {
+              //Si no se pudo actualizar, se crea una nueva sesion
+              const newSessionId = await registerSession(fbUser.uid);
+              currentSessionId = newSessionId;
+            }
+          }
+
+          setSessionId(currentSessionId);
+
+          // Limpiar sesiones antiguas (más de 7 días)
+          await cleanupOldSessions(fbUser.uid);
+
+          // Detectar sesiones sospechosas
+          const suspiciousCheck = await detectSuspiciousSessions(fbUser.uid);
+
+          if (suspiciousCheck.isSuspicious) {
+            toast.warning('Alerta de seguridad', {
+              description: suspiciousCheck.reason,
+              duration: 10000,
+            });
+          }
+        } catch (error) {
+          console.error('[Auth] Error al registrar sesión');
+        }
       } else {
         setUser(null);
+        setSessionId(null);
       }
 
       setLoading(false);
@@ -70,17 +146,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      // Revocar sesión actual antes de cerrar
+      const currentSessionId = getCurrentSessionId();
+      const userId = firebaseUser?.uid;
+      if (currentSessionId && userId) {
+        try {
+          await revokeSession(userId, currentSessionId);
+
+        } catch (error) {
+          console.error('Error de sesion');
+        }
+      }
+
       await firebaseSignOut();
       setFirebaseUser(null);
       setUser(null);
+      setSessionId(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error signing out');
       throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, user, loading, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ firebaseUser, user, loading, sessionId, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

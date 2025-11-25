@@ -25,6 +25,7 @@ import { Plus, TrendingDown, AlertTriangle, CheckCircle, Calendar } from 'lucide
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 
 export default function ExpensesPage() {
   const { user } = useAuth();
@@ -81,6 +82,17 @@ export default function ExpensesPage() {
 
   const handleCreate = async (data: any) => {
     if (!user) return;
+
+    // Verificar rate limit para creación
+    const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const categoryRef = doc(db, 'categories', data.categoryId);
       const expenseUid = `${user.uid}_${Date.now()}`;
@@ -94,8 +106,6 @@ export default function ExpensesPage() {
         userId: user.uid,
       };
 
-     
-
       await createExpenseDocument(expenseData, expenseUid);
 
       await loadExpenses();
@@ -108,7 +118,18 @@ export default function ExpensesPage() {
   };
 
   const handleUpdate = async (data: any) => {
-    if (!selectedExpense) return;
+    if (!selectedExpense || !user) return;
+
+    // Verificar rate limit para actualización
+    const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       const categoryRef = doc(db, 'categories', data.categoryId);
 
@@ -135,7 +156,20 @@ export default function ExpensesPage() {
   };
 
   const confirmDelete = async () => {
-    if (!expenseToDelete) return;
+    if (!expenseToDelete || !user) return;
+
+    // Verificar rate limit para eliminación
+    const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
+    if (!rateLimitCheck.allowed) {
+      toast.error(
+        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        { duration: 5000 }
+      );
+      setConfirmDialogOpen(false);
+      setExpenseToDelete(null);
+      return;
+    }
+
     try {
       await deleteExpenseDocument(expenseToDelete);
       await loadExpenses();

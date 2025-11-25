@@ -89,6 +89,16 @@ service cloud.firestore {
              data.dueDate is timestamp;
     }
 
+    function isValidSession(data) {
+      return data.userId is string &&
+             data.sessionId is string &&
+             data.sessionId.size() > 0 &&
+             data.deviceInfo is string &&
+             data.userAgent is string &&
+             data.createdAt is timestamp &&
+             data.lastActive is timestamp;
+    }
+
     // ===== REGLAS =====
 
     match /users/{userId} {
@@ -148,6 +158,26 @@ service cloud.firestore {
       allow update: if isAuthenticated() &&
                        isOwner(resource.data) &&
                        isValidGoal(request.resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data);
+    }
+
+    match /activeSessions/{sessionDocId} {
+      // Los usuarios solo pueden leer sus propias sesiones
+      allow read: if isAuthenticated() && isOwner(resource.data);
+
+      // Los usuarios pueden crear sus propias sesiones con validación
+      allow create: if isAuthenticated() &&
+                       isOwner(request.resource.data) &&
+                       isValidSession(request.resource.data);
+
+      // Solo se puede actualizar el campo lastActive de la propia sesión
+      allow update: if isAuthenticated() &&
+                       isOwner(resource.data) &&
+                       isOwner(request.resource.data) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActive']) &&
+                       request.resource.data.lastActive is timestamp;
+
+      // Los usuarios pueden eliminar (revocar) sus propias sesiones
       allow delete: if isAuthenticated() && isOwner(resource.data);
     }
 

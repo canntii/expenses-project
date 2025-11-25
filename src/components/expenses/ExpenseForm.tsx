@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
+import { sanitizeString, sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
+import { toast } from 'sonner';
 
 interface ExpenseFormProps {
   open: boolean;
@@ -79,31 +81,39 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones
-    if (!formData.amount || formData.amount <= 0) {
-      return;
-    }
-
-    if (!formData.categoryId) {
-      return;
-    }
-
-    if (!formData.date) {
-      return;
-    }
-
-    setLoading(true);
     try {
+      // Sanitizar y validar inputs
+      const sanitizedAmount = sanitizeNumber(formData.amount);
+      const sanitizedNote = formData.note ? sanitizeWithMaxLength(formData.note, 500) : '';
+
+      // Validaciones
+      if (!sanitizedAmount || sanitizedAmount <= 0) {
+        toast.error('El monto debe ser mayor a 0');
+        return;
+      }
+
+      if (!formData.categoryId) {
+        toast.error('Debes seleccionar una categoría');
+        return;
+      }
+
+      if (!formData.date) {
+        toast.error('Debes seleccionar una fecha');
+        return;
+      }
+
+      setLoading(true);
       const dateObj = createLocalDate(formData.date);
       await onSubmit({
         categoryId: formData.categoryId,
-        amount: formData.amount,
+        amount: sanitizedAmount,
         currency: formData.currency,
         date: Timestamp.fromDate(dateObj),
-        note: formData.note,
+        note: sanitizedNote,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting expense:', error);
+      toast.error(error.message || 'Error al guardar el gasto');
     } finally {
       setLoading(false);
     }

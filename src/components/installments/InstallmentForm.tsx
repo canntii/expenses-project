@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
+import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
+import { toast } from 'sonner';
 
 interface InstallmentFormProps {
   open: boolean;
@@ -105,45 +107,57 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validaciones
-    if (!formData.description.trim()) {
-      return;
-    }
-
-    if (!formData.total_amount || (typeof formData.total_amount === 'number' && formData.total_amount <= 0)) {
-      return;
-    }
-
-    if (!formData.installments || (typeof formData.installments === 'number' && formData.installments <= 0)) {
-      return;
-    }
-
-    if (!formData.category_id) {
-      return;
-    }
-
-    if (!formData.start_date) {
-      return;
-    }
-
-    setLoading(true);
     try {
+      // Sanitizar y validar inputs
+      const sanitizedDescription = sanitizeWithMaxLength(formData.description, 300);
+      const sanitizedTotalAmount = sanitizeNumber(formData.total_amount);
+      const sanitizedInstallments = sanitizeNumber(formData.installments);
+      const sanitizedCurrentInstallment = sanitizeNumber(formData.current_installment);
+      const sanitizedTax = sanitizeNumber(formData.tax);
+
+      if (!sanitizedDescription || sanitizedDescription.length < 3) {
+        toast.error('La descripción debe tener al menos 3 caracteres');
+        return;
+      }
+
+      if (!sanitizedTotalAmount || sanitizedTotalAmount <= 0) {
+        toast.error('El monto total debe ser mayor a 0');
+        return;
+      }
+
+      if (!sanitizedInstallments || sanitizedInstallments <= 0) {
+        toast.error('El número de cuotas debe ser mayor a 0');
+        return;
+      }
+
+      if (!formData.category_id) {
+        toast.error('Debes seleccionar una categoría');
+        return;
+      }
+
+      if (!formData.start_date) {
+        toast.error('Debes seleccionar una fecha de inicio');
+        return;
+      }
+
+      setLoading(true);
       const startDateObj = createLocalDate(formData.start_date);
       const monthly_amount = calculateMonthlyAmount();
 
       await onSubmit({
-        description: formData.description,
+        description: sanitizedDescription,
         category_id: formData.category_id,
-        total_amount: typeof formData.total_amount === 'number' ? formData.total_amount : parseFloat(formData.total_amount),
-        installments: typeof formData.installments === 'number' ? formData.installments : parseInt(formData.installments),
-        current_installment: typeof formData.current_installment === 'number' ? formData.current_installment : parseInt(formData.current_installment as string),
+        total_amount: sanitizedTotalAmount,
+        installments: Math.floor(sanitizedInstallments),
+        current_installment: Math.floor(sanitizedCurrentInstallment),
         monthly_amount: monthly_amount,
         currency: formData.currency,
         start_date: Timestamp.fromDate(startDateObj),
-        tax: typeof formData.tax === 'number' ? formData.tax : (formData.tax === '' ? 0 : parseFloat(formData.tax)),
+        tax: sanitizedTax,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting installment:', error);
+      toast.error(error.message || 'Error al guardar la cuota');
     } finally {
       setLoading(false);
     }
