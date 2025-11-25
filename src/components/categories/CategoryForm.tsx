@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ interface CategoryFormProps {
 }
 
 export default function CategoryForm({ open, onClose, onSubmit, category }: CategoryFormProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
     name: string;
@@ -46,8 +48,9 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
   });
 
   const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    t.months.january, t.months.february, t.months.march, t.months.april,
+    t.months.may, t.months.june, t.months.july, t.months.august,
+    t.months.september, t.months.october, t.months.november, t.months.december
   ];
 
   useEffect(() => {
@@ -95,12 +98,12 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
       const sanitizedLimit = sanitizeNumber(formData.monthly_limit);
 
       if (!sanitizedName || sanitizedName.length < 2) {
-        toast.error('El nombre debe tener al menos 2 caracteres');
+        toast.error(t.validation.nameMinLength);
         return;
       }
 
       if (sanitizedLimit < 0) {
-        toast.error('El límite mensual no puede ser negativo');
+        toast.error(t.validation.amountGreaterThanZero);
         return;
       }
 
@@ -114,7 +117,7 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
       });
     } catch (error: any) {
       console.error('Error submitting category:', error);
-      toast.error(error.message || 'Error al guardar la categoría');
+      toast.error(error.message || t.categories.createError);
     } finally {
       setLoading(false);
     }
@@ -125,21 +128,21 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
       <DialogContent className="sm:max-w-[500px] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {category ? 'Editar Categoría' : 'Nueva Categoría'}
+            {category ? t.categories.editCategory : t.categories.newCategory}
           </DialogTitle>
           <DialogDescription>
             {category
-              ? 'Modifica los detalles de tu categoría'
-              : 'Crea una nueva categoría para organizar tus gastos'}
+              ? t.categories.subtitle
+              : t.categories.subtitle}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la Categoría</Label>
+              <Label htmlFor="name">{t.categories.categoryName}</Label>
               <Input
                 id="name"
-                placeholder="Ej: Comida, Transporte, Entretenimiento"
+                placeholder={t.categories.formPlaceHolder}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="bg-white dark:bg-gray-900"
@@ -148,44 +151,44 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Tipo de Gasto</Label>
+              <Label htmlFor="type">{t.categories.type}</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => setFormData({ ...formData, type: value })}
               >
                 <SelectTrigger className="bg-white dark:bg-gray-900">
-                  <SelectValue placeholder="Selecciona un tipo" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="fixed">Fijo</SelectItem>
-                  <SelectItem value="variable">Variable</SelectItem>
+                  <SelectItem value="fixed">{t.categories.fixed}</SelectItem>
+                  <SelectItem value="variable">{t.categories.variable}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="currency">Moneda</Label>
+                <Label htmlFor="currency">{t.categories.currency}</Label>
                 <Select
                   value={formData.currency}
                   onValueChange={(value) => setFormData({ ...formData, currency: value })}
                 >
                   <SelectTrigger className="bg-white dark:bg-gray-900">
-                    <SelectValue placeholder="Selecciona moneda" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CRC">CRC - Colón Costarricense</SelectItem>
-                    <SelectItem value="USD">USD - Dólar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                    <SelectItem value="COP">COP - Peso Colombiano</SelectItem>
-                    <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                    <SelectItem value="CRC">{t.currencies.CRC}</SelectItem>
+                    <SelectItem value="USD">{t.currencies.USD}</SelectItem>
+                    <SelectItem value="EUR">{t.currencies.EUR}</SelectItem>
+                    <SelectItem value="MXN">{t.currencies.MXN}</SelectItem>
+                    <SelectItem value="COP">{t.currencies.COP}</SelectItem>
+                    <SelectItem value="ARS">{t.currencies.ARS}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="monthly_limit">Límite Mensual</Label>
+                <Label htmlFor="monthly_limit">{t.categories.monthlyLimit}</Label>
                 <Input
                   id="monthly_limit"
                   type="number"
@@ -204,7 +207,7 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Meses Activos</Label>
+                <Label>{t.categories.activeMonth}</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -212,13 +215,13 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
                   onClick={toggleAllMonths}
                   className="text-xs h-7"
                 >
-                  {formData.activeMonths.length === 12 ? 'Deseleccionar Todos' : 'Seleccionar Todos'}
+                  {formData.activeMonths.length === 12 ? t.categories.deSelectAll : t.categories.selectAll}
                 </Button>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {formData.activeMonths.length === 0
-                  ? 'Categoria visible todo el ano (no se ha seleccionado ningun mes especifico)'
-                  : `Categoria visible solo en: ${formData.activeMonths.map(m => monthNames[m]).join(', ')}`
+                  ? t.categories.visibility
+                  : `${t.categories.conditionalVisibility} ${formData.activeMonths.map(m => monthNames[m]).join(', ')}`
                 }
               </p>
               <div className="grid grid-cols-3 gap-2 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
@@ -249,14 +252,14 @@ export default function CategoryForm({ open, onClose, onSubmit, category }: Cate
               disabled={loading}
               className="hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancelar
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50"
             >
-              {loading ? 'Guardando...' : category ? 'Actualizar' : 'Crear'}
+              {loading ? t.common.saving : category ? t.common.update : t.common.create}
             </Button>
           </DialogFooter>
         </form>

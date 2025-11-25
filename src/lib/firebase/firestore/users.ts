@@ -7,6 +7,7 @@ export interface UserData {
   email: string;
   name: string;
   photoURL?: string;
+  language: string;
   createdAt: any;
   updatedAt: any;
 }
@@ -19,10 +20,15 @@ export const createUserDocument = async (user: User) => {
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
+      // Detect browser language
+      const browserLang = typeof navigator !== 'undefined' ? navigator.language.split('-')[0] : 'es';
+      const defaultLang = ['es', 'en'].includes(browserLang) ? browserLang : 'es';
+
       const userData: any = {
         uid: user.uid,
         email: user.email || '',
         name: user.displayName || '',
+        language: defaultLang,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };

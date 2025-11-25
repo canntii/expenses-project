@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthenticatedShell } from "./AuthenticatedShell";
 import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/layout/Navbar";
@@ -33,9 +34,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <AuthenticatedShell>
-          {children}
-          </AuthenticatedShell>
+          <LanguageProvider>
+            <AuthenticatedShell>
+            {children}
+            </AuthenticatedShell>
+          </LanguageProvider>
         </AuthProvider>
         <Toaster />
       </body>

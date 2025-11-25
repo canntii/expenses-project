@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Category, UpdateCategoryData } from '@/lib/types/category';
 import { Expense } from '@/lib/types/expense';
 import {
@@ -28,6 +29,7 @@ import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/u
 
 export default function CategoriesPage() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function CategoriesPage() {
   // Generar lista de meses y años disponibles
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: format(new Date(2024, i, 1), 'MMMM', { locale: es })
+    label: format(new Date(2024, i, 1), 'MMMM', { locale: language === 'es' ? es : undefined })
   }));
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i);
@@ -57,7 +59,7 @@ export default function CategoriesPage() {
       setCategories(userCategories);
     } catch (error) {
       console.error('Error loading categories:', error);
-      toast.error('Error al cargar las categorías');
+      toast.error(t.categories.loadError);
     } finally {
       setLoading(false);
     }
@@ -87,7 +89,7 @@ export default function CategoriesPage() {
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
         { duration: 5000 }
       );
       return;
@@ -110,10 +112,10 @@ export default function CategoriesPage() {
       );
       await loadCategories();
       setIsFormOpen(false);
-      toast.success('Categoría creada exitosamente');
+      toast.success(t.categories.createSuccess);
     } catch (error) {
       console.error('Error creating category:', error);
-      toast.error('Error al crear la categoría');
+      toast.error(t.categories.createError);
       throw error;
     }
   };
@@ -125,7 +127,7 @@ export default function CategoriesPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
         { duration: 5000 }
       );
       return;
@@ -136,10 +138,10 @@ export default function CategoriesPage() {
       await loadCategories();
       setSelectedCategory(null);
       setIsFormOpen(false);
-      toast.success('Categoría actualizada exitosamente');
+      toast.success(t.categories.updateSuccess);
     } catch (error) {
       console.error('Error updating category:', error);
-      toast.error('Error al actualizar la categoría');
+      toast.error(t.categories.updateError);
       throw error;
     }
   };
@@ -156,7 +158,7 @@ export default function CategoriesPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);
@@ -167,10 +169,10 @@ export default function CategoriesPage() {
     try {
       await deleteCategoryDocument(categoryToDelete);
       await loadCategories();
-      toast.success('Categoría eliminada exitosamente');
+      toast.success(t.categories.deleteSuccess);
     } catch (error) {
       console.error('Error deleting category:', error);
-      toast.error('Error al eliminar la categoría');
+      toast.error(t.categories.deleteError);
     } finally {
       setConfirmDialogOpen(false);
       setCategoryToDelete(null);
@@ -217,10 +219,10 @@ export default function CategoriesPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
               <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Mis Categorías
+                {t.categories.title}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Organiza tus gastos e ingresos por categorías
+                {t.categories.subtitle}
               </p>
             </div>
             <Button
@@ -231,7 +233,7 @@ export default function CategoriesPage() {
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50 w-full sm:w-auto"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Nueva Categoría
+              {t.categories.newCategory}
             </Button>
           </div>
 
@@ -240,7 +242,7 @@ export default function CategoriesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar gastos por:</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
               </div>
               <div className="flex gap-3 flex-1 max-w-full">
                 <Select
@@ -248,7 +250,7 @@ export default function CategoriesPage() {
                   onValueChange={(value) => setSelectedMonth(parseInt(value))}
                 >
                   <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Mes" />
+                    <SelectValue placeholder={t.filters.selectMonth} />
                   </SelectTrigger>
                   <SelectContent>
                     {months.map((month) => (
@@ -263,7 +265,7 @@ export default function CategoriesPage() {
                   onValueChange={(value) => setSelectedYear(parseInt(value))}
                 >
                   <SelectTrigger className="w-full sm:w-[120px]">
-                    <SelectValue placeholder="Año" />
+                    <SelectValue placeholder={t.filters.selectYear} />
                   </SelectTrigger>
                   <SelectContent>
                     {years.map((year) => (
@@ -285,17 +287,17 @@ export default function CategoriesPage() {
                 <Plus className="w-10 h-10 text-blue-600 dark:text-blue-400" />
               </div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                No tienes categorías
+                {t.categories.noCategory}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Comienza creando tu primera categoría para organizar tus finanzas
+                {t.categories.startCategory}
               </p>
               <Button
                 onClick={() => setIsFormOpen(true)}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Crear Primera Categoría
+                {t.categories.createFirstCategory}
               </Button>
             </div>
           </div>

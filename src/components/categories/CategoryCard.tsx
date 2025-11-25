@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Pencil, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CategoryCardProps {
   category: Category;
@@ -20,7 +21,8 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
   const percentage = limit > 0 ? (spent / limit) * 100 : 0;
   const isOverLimit = spent > limit && limit > 0;
   const isNearLimit = percentage >= 80 && !isOverLimit && limit > 0;
-
+  const { t } = useLanguage();
+  
   const handleCardClick = () => {
     // Pass month and year as URL parameters
     const params = new URLSearchParams();
@@ -50,13 +52,13 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Límite Mensual:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.categories.monthlyLimit}</span>
           <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
             {category.monthly_limit.toLocaleString()} {category.currency}
           </span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Moneda:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.categories.currency}:</span>
           <span className="text-sm font-medium">{category.currency}</span>
         </div>
 
@@ -65,7 +67,7 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
           <div className="pt-2 space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Gastado:</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.categories.spent}</span>
                 {isOverLimit && (
                   <AlertTriangle className="w-4 h-4 text-red-600" />
                 )}
@@ -84,7 +86,7 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
                   <span className="text-gray-500 dark:text-gray-400"> {category.currency}</span>
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {percentage.toFixed(0)}% usado
+                  {percentage.toFixed(0)}% {t.categories.percentageUsed}
                 </p>
               </div>
             </div>
@@ -101,12 +103,12 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
             />
             {isOverLimit && (
               <p className="text-xs text-red-600 dark:text-red-400">
-                ⚠️ Excedido por {(spent - limit).toLocaleString()} {category.currency}
+                ⚠️ {t.categories.exceededBy} {(spent - limit).toLocaleString()} {category.currency}
               </p>
             )}
             {isNearLimit && (
               <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                ⚠️ Cerca del límite
+                ⚠️ {t.categories.nearLimit}
               </p>
             )}
           </div>
@@ -120,7 +122,7 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
           onClick={(e) => handleButtonClick(e, () => onEdit(category))}
         >
           <Pencil className="w-4 h-4 mr-2" />
-          Editar
+          {t.common.edit}
         </Button>
         <Button
           variant="outline"
@@ -129,7 +131,7 @@ export default function CategoryCard({ category, spent = 0, onEdit, onDelete, se
           onClick={(e) => handleButtonClick(e, () => onDelete(category.uid))}
         >
           <Trash2 className="w-4 h-4 mr-2" />
-          Eliminar
+          {t.common.delete}
         </Button>
       </CardFooter>
     </Card>

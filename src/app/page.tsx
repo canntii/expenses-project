@@ -51,7 +51,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Chart visibility configuration type
 interface ChartVisibility {
@@ -81,6 +82,7 @@ const DEFAULT_CHART_VISIBILITY: ChartVisibility = {
 };
 
 export default function DashboardPage() {
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -144,6 +146,7 @@ export default function DashboardPage() {
     localStorage.setItem('chartVisibility', JSON.stringify(DEFAULT_CHART_VISIBILITY));
   };
 
+  const localSelected = t.dashboard.languageL === "es" ? es : enUS;
   const loadData = useCallback(async () => {
     if (!user) return;
     try {
@@ -485,16 +488,16 @@ export default function DashboardPage() {
   }).filter(item => item.data.some(d => d.amount > 0)); // Only show categories with some spending
 
   const CHART_NAMES = {
-    chart1: 'Historial de Ultimos 6 Meses',
-    chart2: 'Gastos por Categoria',
-    chart3: 'Tendencia de Ahorro',
-    chart4: 'Progreso de Objetivos',
-    chart5: 'Gastos Fijos vs Variables',
-    chart6: 'Top 5 Gastos Individuales',
-    chart7: 'Evolucion de Deudas',
-    chart8: 'Distribucion de Ingresos',
-    chart9: 'Comparacion Mes Actual vs Anterior',
-    chart10: 'Heatmap de Gastos por Categoria',
+  chart1: t.dashboard.historyLast6Months,
+  chart2: t.dashboard.expensesByCategory,
+  chart3: t.dashboard.savingsTrend,
+  chart4: t.dashboard.goalsProgress,
+  chart5: t.dashboard.fixedVsVariableExpenses,
+  chart6: t.dashboard.top5IndividualExpenses,
+  chart7: t.dashboard.debtEvolution,
+  chart8: t.dashboard.incomeDistribution,
+  chart9: t.dashboard.currentVsPreviousMonthComparison,
+  chart10: t.dashboard.expensesHeatmapByCategory,
   };
 
   return (
@@ -506,10 +509,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="pb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                  Dashboard Financiero
+                  {t.dashboard.title}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Resumen de {format(new Date(selectedYear, selectedMonth), "MMMM yyyy", { locale: es })}
+                  
+                  {t.dashboard.summaryLegend} {format(new Date(selectedYear, selectedMonth), "MMMM yyyy", { locale: localSelected })}
                 </p>
               </div>
             </div>
@@ -519,7 +523,7 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por:</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
                 </div>
                 <div className="flex gap-3 flex-1 max-w-full">
                   <Select
@@ -561,7 +565,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Configurar Graficos</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.dashboard.graphicsSetup}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -600,7 +604,7 @@ export default function DashboardPage() {
                       onClick={showAllCharts}
                       className="text-xs"
                     >
-                      Mostrar Todos
+                      {t.dashboard.showAll}
                     </Button>
                     <Button
                       variant="outline"
@@ -608,7 +612,7 @@ export default function DashboardPage() {
                       onClick={hideAllCharts}
                       className="text-xs"
                     >
-                      Ocultar Todos
+                      {t.dashboard.hideAll}
                     </Button>
                     <Button
                       variant="outline"
@@ -616,7 +620,7 @@ export default function DashboardPage() {
                       onClick={resetChartVisibility}
                       className="text-xs"
                     >
-                      Restablecer
+                      {t.dashboard.reset}
                     </Button>
                   </div>
                 </div>
@@ -630,7 +634,7 @@ export default function DashboardPage() {
             <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Ingresos del Mes
+                  {t.dashboard.incomebyMonthLeyend}
                 </CardTitle>
                 <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                   <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
@@ -655,7 +659,7 @@ export default function DashboardPage() {
             <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Gastos del Mes
+                  {t.dashboard.expenseByMonthLeyend}
                 </CardTitle>
                 <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                   <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -680,7 +684,7 @@ export default function DashboardPage() {
             <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Balance del Mes
+                  {t.dashboard.BalanceMonthLeyend}
                 </CardTitle>
                 <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                   <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -714,7 +718,7 @@ export default function DashboardPage() {
             <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Deudas Pendientes
+                  {t.dashboard.installmentsPendingLeyend}
                 </CardTitle>
                 <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                   <CreditCard className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -1083,7 +1087,7 @@ export default function DashboardPage() {
                       <table className="w-full text-sm">
                         <thead className="sticky top-0 bg-white dark:bg-gray-800">
                           <tr>
-                            <th className="text-left p-3 border-b border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-semibold">Categoria</th>
+                            <th className="text-left p-3 border-b border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-semibold">{t.dashboard.category}</th>
                             {Array.from({ length: 6 }, (_, i) => {
                               const date = subMonths(selectedDate, 5 - i);
                               return (
@@ -1133,7 +1137,7 @@ export default function DashboardPage() {
           {topCategories.length > 0 && (
             <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm mb-8">
               <CardHeader>
-                <CardTitle>Estado de Presupuesto por Categoría</CardTitle>
+                <CardTitle>{t.dashboard.budgetStatusByCategory}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1162,7 +1166,7 @@ export default function DashboardPage() {
                             <span className="text-gray-500 dark:text-gray-400"> / {category.monthly_limit.toLocaleString()} {category.currency}</span>
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {percentage.toFixed(0)}% usado
+                            {percentage.toFixed(0)}% {t.dashboard.percentageUsed}
                           </p>
                         </div>
                       </div>

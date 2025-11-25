@@ -26,8 +26,10 @@ import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ExpensesPage() {
+  const {t} = useLanguage();
   const { user } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -274,7 +276,7 @@ export default function ExpensesPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por:</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
                 </div>
                 <div className="flex gap-3 flex-1 max-w-full">
                   <Select
