@@ -785,11 +785,14 @@ export default function DashboardPage() {
                           data={expensesByCategory}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
+                          innerRadius={50}
+                          outerRadius={80}
                           paddingAngle={4}
                           labelLine={false}
-                          label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
+                          label={({ name, percent }) => {
+                            const percentage = ((percent || 0) * 100).toFixed(0);
+                            return window.innerWidth < 640 ? `${percentage}%` : `${name} (${percentage}%)`;
+                          }}
                           fill="#8884d8"
                           dataKey="value"
                         >
@@ -798,6 +801,10 @@ export default function DashboardPage() {
                           ))}
                         </Pie>
                         <Tooltip {...tooltipStyle} />
+                        <Legend
+                          wrapperStyle={{ fontSize: '12px' }}
+                          iconSize={10}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
@@ -855,25 +862,25 @@ export default function DashboardPage() {
                 <CardContent>
                   {goalsProgressData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={goalsProgressData} layout="vertical">
+                      <BarChart data={goalsProgressData} layout="vertical" margin={{ left: 10, right: 10 }}>
                         <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" horizontal={false} />
                         <XAxis
                           type="number"
                           domain={[0, 100]}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#64748b", fontSize: 12 }}
+                          tick={{ fill: "#64748b", fontSize: 10 }}
                         />
                         <YAxis
                           dataKey="name"
                           type="category"
-                          width={150}
+                          width={window.innerWidth < 640 ? 100 : 150}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#64748b", fontSize: 11 }}
+                          tick={{ fill: "#64748b", fontSize: window.innerWidth < 640 ? 10 : 11 }}
                         />
                         <Tooltip {...tooltipStyle} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
                         <Bar dataKey="progreso" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Progreso %" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -926,24 +933,24 @@ export default function DashboardPage() {
                 <CardContent>
                   {top5ExpensesData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={top5ExpensesData} layout="vertical">
+                      <BarChart data={top5ExpensesData} layout="vertical" margin={{ left: 10, right: 10 }}>
                         <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" horizontal={false} />
                         <XAxis
                           type="number"
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#64748b", fontSize: 12 }}
+                          tick={{ fill: "#64748b", fontSize: 10 }}
                         />
                         <YAxis
                           dataKey="name"
                           type="category"
-                          width={150}
+                          width={window.innerWidth < 640 ? 100 : 150}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fill: "#64748b", fontSize: 11 }}
+                          tick={{ fill: "#64748b", fontSize: window.innerWidth < 640 ? 10 : 11 }}
                         />
                         <Tooltip {...tooltipStyle} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
                         <Bar dataKey="monto" fill="#ec4899" radius={[0, 6, 6, 0]} name="Monto" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1001,11 +1008,14 @@ export default function DashboardPage() {
                           data={incomeDistributionData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
+                          innerRadius={50}
+                          outerRadius={80}
                           paddingAngle={4}
                           labelLine={false}
-                          label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}
+                          label={({ name, percent }) => {
+                            const percentage = ((percent || 0) * 100).toFixed(0);
+                            return window.innerWidth < 640 ? `${percentage}%` : `${name} (${percentage}%)`;
+                          }}
                           fill="#8884d8"
                           dataKey="value"
                         >
@@ -1014,6 +1024,10 @@ export default function DashboardPage() {
                           ))}
                         </Pie>
                         <Tooltip {...tooltipStyle} />
+                        <Legend
+                          wrapperStyle={{ fontSize: '12px' }}
+                          iconSize={10}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
                   ) : (
