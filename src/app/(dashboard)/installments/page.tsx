@@ -229,9 +229,9 @@ export default function InstallmentsPage() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
         <div className="max-w-7xl mx-auto mt-4">
           <div className="mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
-                <h1 className="pb-2 text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
+                <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
                   Mis Deudas y Cuotas
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -243,7 +243,7 @@ export default function InstallmentsPage() {
                   setSelectedInstallment(null);
                   setIsFormOpen(true);
                 }}
-                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold shadow-lg shadow-orange-500/50 dark:shadow-orange-900/50"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold shadow-lg shadow-orange-500/50 dark:shadow-orange-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Nueva Deuda/Cuota

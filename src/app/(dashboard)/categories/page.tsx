@@ -214,9 +214,9 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
       <div className="max-w-7xl mx-auto mt-4">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="pb-2 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Mis Categorías
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
@@ -228,7 +228,7 @@ export default function CategoriesPage() {
                 setSelectedCategory(null);
                 setIsFormOpen(true);
               }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50 w-full sm:w-auto"
             >
               <Plus className="w-5 h-5 mr-2" />
               Nueva Categoría
@@ -236,18 +236,18 @@ export default function CategoriesPage() {
           </div>
 
           {/* Filtro de mes y año */}
-          <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-4">
-            <div className="flex items-center gap-4">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar gastos por:</span>
               </div>
-              <div className="flex gap-3 flex-1">
+              <div className="flex gap-3 flex-1 max-w-full">
                 <Select
                   value={selectedMonth.toString()}
                   onValueChange={(value) => setSelectedMonth(parseInt(value))}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Mes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -262,7 +262,7 @@ export default function CategoriesPage() {
                   value={selectedYear.toString()}
                   onValueChange={(value) => setSelectedYear(parseInt(value))}
                 >
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-full sm:w-[120px]">
                     <SelectValue placeholder="Año" />
                   </SelectTrigger>
                   <SelectContent>

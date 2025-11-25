@@ -516,17 +516,17 @@ export default function DashboardPage() {
 
             {/* Filtro de mes y año */}
             <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-4">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por:</span>
                 </div>
-                <div className="flex gap-3 flex-1">
+                <div className="flex gap-3 flex-1 max-w-full">
                   <Select
                     value={selectedMonth.toString()}
                     onValueChange={(value) => setSelectedMonth(parseInt(value))}
                   >
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                       <SelectValue placeholder="Mes" />
                     </SelectTrigger>
                     <SelectContent>
@@ -541,7 +541,7 @@ export default function DashboardPage() {
                     value={selectedYear.toString()}
                     onValueChange={(value) => setSelectedYear(parseInt(value))}
                   >
-                    <SelectTrigger className="w-[120px]">
+                    <SelectTrigger className="w-full sm:w-[120px]">
                       <SelectValue placeholder="Año" />
                     </SelectTrigger>
                     <SelectContent>
