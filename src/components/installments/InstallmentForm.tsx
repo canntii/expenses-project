@@ -229,7 +229,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="total_amount">Monto Total</Label>
                 <Input
@@ -268,7 +268,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="installments">Número de Cuotas</Label>
                 <Input
