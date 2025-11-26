@@ -9,8 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function ProfileContent() {
+  const { t } = useLanguage();
+
   return (
     <Tabs defaultValue="personal" className="space-y-6">
       <TabsList className="grid w-full grid-cols-4">
@@ -105,6 +109,16 @@ export default function ProfileContent() {
                 </p>
               </div>
               <Switch defaultChecked />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base">{t.profile.theme || 'Theme'}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t.profile.themeDescription || 'Switch between light and dark mode'}
+                </p>
+              </div>
+              <ThemeToggle />
             </div>
             <Separator />
             <div className="flex items-center justify-between">

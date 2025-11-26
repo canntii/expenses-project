@@ -88,8 +88,9 @@ export default function CategoriesPage() {
     // Verificar rate limit para creación
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
+      const seconds = rateLimitCheck.retryAfter ?? 0;
       toast.error(
-        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
+        t.categories.rateLimitExceeded.replace('{seconds}', seconds.toString()),
         { duration: 5000 }
       );
       return;
@@ -127,7 +128,7 @@ export default function CategoriesPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
+        t.categories.rateLimitExceeded.replace('{seconds}', seconds.toString()),
         { duration: 5000 }
       );
       return;
@@ -158,7 +159,7 @@ export default function CategoriesPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        t.categories.rateLimitExceeded.replace('{seconds}', rateLimitCheck.retryAfter.toString()),
+        t.categories.rateLimitExceeded.replace('{seconds}', seconds.toString()),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);

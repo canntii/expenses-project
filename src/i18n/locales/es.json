@@ -53,7 +53,9 @@
     "updateSuccess": "Perfil actualizado exitosamente",
     "updateError": "Error al actualizar el perfil",
     "language": "Idioma",
-    "selectLanguage": "Selecciona tu idioma preferido"
+    "selectLanguage": "Selecciona tu idioma preferido",
+    "theme": "Tema",
+    "themeDescription": "Cambia entre modo claro y oscuro"
   },
   "dashboard": {
     "title": "Resumen",

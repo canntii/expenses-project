@@ -52,7 +52,9 @@
     "updateSuccess": "Profile updated successfully",
     "updateError": "Error updating profile",
     "language": "Language",
-    "selectLanguage": "Select your preferred language"
+    "selectLanguage": "Select your preferred language",
+    "theme": "Theme",
+    "themeDescription": "Switch between light and dark mode"
   },
   "dashboard": {
     "title": "Dashboard",
