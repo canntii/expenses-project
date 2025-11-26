@@ -24,6 +24,7 @@ import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 import { sanitizeString, sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExpenseFormProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface ExpenseFormProps {
 }
 
 export default function ExpenseForm({ open, onClose, onSubmit, expense, categories }: ExpenseFormProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
     categoryId: string;
@@ -88,17 +90,17 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
 
       // Validaciones
       if (!sanitizedAmount || sanitizedAmount <= 0) {
-        toast.error('El monto debe ser mayor a 0');
+        toast.error(t.expenses.amountValidation);
         return;
       }
 
       if (!formData.categoryId) {
-        toast.error('Debes seleccionar una categoría');
+        toast.error(t.expenses.categoryValidation);
         return;
       }
 
       if (!formData.date) {
-        toast.error('Debes seleccionar una fecha');
+        toast.error(t.expenses.dateValidation);
         return;
       }
 
@@ -113,7 +115,7 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
       });
     } catch (error: any) {
       console.error('Error submitting expense:', error);
-      toast.error(error.message || 'Error al guardar el gasto');
+      toast.error(error.message || t.expenses.saveError);
     } finally {
       setLoading(false);
     }
@@ -124,24 +126,22 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
       <DialogContent className="sm:max-w-[500px] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
-            {expense ? 'Editar Gasto' : 'Nuevo Gasto'}
+            {expense ? t.expenses.formTitleEdit : t.expenses.formTitleNew}
           </DialogTitle>
           <DialogDescription>
-            {expense
-              ? 'Modifica los detalles de tu gasto'
-              : 'Registra un nuevo gasto en tu cuenta'}
+            {expense ? t.expenses.formDescriptionEdit : t.expenses.formDescriptionNew}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría</Label>
+              <Label htmlFor="category">{t.expenses.categoryField}</Label>
               <Select
                 value={formData.categoryId}
                 onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
               >
                 <SelectTrigger className="bg-white dark:bg-gray-900">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder={t.expenses.selectCategoryPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -155,13 +155,13 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Monto</Label>
+                <Label htmlFor="amount">{t.expenses.amountField}</Label>
                 <Input
                   id="amount"
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="15000"
+                  placeholder={t.expenses.amountPlaceholder}
                   value={formData.amount}
                   onChange={(e) =>
                     setFormData({ ...formData, amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
@@ -172,28 +172,28 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="currency">Moneda</Label>
+                <Label htmlFor="currency">{t.expenses.currencyField}</Label>
                 <Select
                   value={formData.currency}
                   onValueChange={(value) => setFormData({ ...formData, currency: value })}
                 >
                   <SelectTrigger className="bg-white dark:bg-gray-900">
-                    <SelectValue placeholder="Selecciona moneda" />
+                    <SelectValue placeholder={t.expenses.selectCurrencyPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CRC">CRC - Colón Costarricense</SelectItem>
-                    <SelectItem value="USD">USD - Dólar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                    <SelectItem value="COP">COP - Peso Colombiano</SelectItem>
-                    <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                    <SelectItem value="CRC">{t.currencies.CRC}</SelectItem>
+                    <SelectItem value="USD">{t.currencies.USD}</SelectItem>
+                    <SelectItem value="EUR">{t.currencies.EUR}</SelectItem>
+                    <SelectItem value="MXN">{t.currencies.MXN}</SelectItem>
+                    <SelectItem value="COP">{t.currencies.COP}</SelectItem>
+                    <SelectItem value="ARS">{t.currencies.ARS}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Fecha del Gasto</Label>
+              <Label htmlFor="date">{t.expenses.dateField}</Label>
               <Input
                 id="date"
                 type="date"
@@ -205,10 +205,10 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="note">Nota (Opcional)</Label>
+              <Label htmlFor="note">{t.expenses.noteField}</Label>
               <Textarea
                 id="note"
-                placeholder="Ej: Compra en supermercado, pago de servicios..."
+                placeholder={t.expenses.notePlaceholder}
                 value={formData.note}
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                 className="bg-white dark:bg-gray-900 min-h-[80px]"
@@ -224,14 +224,14 @@ export default function ExpenseForm({ open, onClose, onSubmit, expense, categori
               disabled={loading}
               className="hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancelar
+              {t.expenses.cancelButton}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold shadow-lg shadow-red-500/50 dark:shadow-red-900/50"
             >
-              {loading ? 'Guardando...' : expense ? 'Actualizar' : 'Crear'}
+              {loading ? t.expenses.savingButton : expense ? t.expenses.updateButton : t.expenses.createButton}
             </Button>
           </DialogFooter>
         </form>

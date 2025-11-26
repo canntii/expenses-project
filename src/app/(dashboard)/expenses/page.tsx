@@ -24,12 +24,12 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Plus, TrendingDown, AlertTriangle, CheckCircle, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ExpensesPage() {
-  const {t} = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -45,9 +45,10 @@ export default function ExpensesPage() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   // Generar lista de meses y años disponibles
+  const dateLocale = language === 'en' ? enUS : es;
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: format(new Date(2024, i, 1), 'MMMM', { locale: es })
+    label: format(new Date(2024, i, 1), 'MMMM', { locale: dateLocale })
   }));
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i);
@@ -59,11 +60,11 @@ export default function ExpensesPage() {
       const userExpenses = await getUserExpenses(user.uid);
       setExpenses(userExpenses);
     } catch (error) {
-      toast.error('Error al cargar los gastos');
+      toast.error(t.expenses.loadError);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const loadCategories = useCallback(async () => {
     if (!user) return;
@@ -71,9 +72,9 @@ export default function ExpensesPage() {
       const userCategories = await getUserCategories(user.uid);
       setCategories(userCategories);
     } catch (error) {
-      toast.error('Error al cargar las categorías');
+      toast.error(t.expenses.loadCategoriesError);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     if (user) {
@@ -89,7 +90,7 @@ export default function ExpensesPage() {
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.expenses.rateLimitCreate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -112,9 +113,9 @@ export default function ExpensesPage() {
 
       await loadExpenses();
       setIsFormOpen(false);
-      toast.success('Gasto creado exitosamente');
+      toast.success(t.expenses.createSuccess);
     } catch (error: any) {
-      toast.error('Error al crear el gasto');
+      toast.error(t.expenses.createError);
       throw error;
     }
   };
@@ -126,7 +127,7 @@ export default function ExpensesPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.expenses.rateLimitUpdate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -145,9 +146,9 @@ export default function ExpensesPage() {
       await loadExpenses();
       setSelectedExpense(null);
       setIsFormOpen(false);
-      toast.success('Gasto actualizado exitosamente');
+      toast.success(t.expenses.updateSuccess);
     } catch (error) {
-      toast.error('Error al actualizar el gasto');
+      toast.error(t.expenses.updateError);
       throw error;
     }
   };
@@ -164,7 +165,7 @@ export default function ExpensesPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.expenses.rateLimitDelete.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);
@@ -175,9 +176,9 @@ export default function ExpensesPage() {
     try {
       await deleteExpenseDocument(expenseToDelete);
       await loadExpenses();
-      toast.success('Gasto eliminado exitosamente');
+      toast.success(t.expenses.deleteSuccess);
     } catch (error) {
-      toast.error('Error al eliminar el gasto');
+      toast.error(t.expenses.deleteError);
     } finally {
       setConfirmDialogOpen(false);
       setExpenseToDelete(null);
@@ -253,10 +254,10 @@ export default function ExpensesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent mb-2">
-                  Mis Gastos
+                  {t.expenses.title}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Controla y administra tus gastos mensuales
+                  {t.expenses.subtitle}
                 </p>
               </div>
               <Button
@@ -267,7 +268,7 @@ export default function ExpensesPage() {
                 className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold shadow-lg shadow-red-500/50 dark:shadow-red-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Nuevo Gasto
+                {t.expenses.newExpense}
               </Button>
             </div>
 
@@ -284,7 +285,7 @@ export default function ExpensesPage() {
                     onValueChange={(value) => setSelectedMonth(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Mes" />
+                      <SelectValue placeholder={t.expenses.monthPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {months.map((month) => (
@@ -299,7 +300,7 @@ export default function ExpensesPage() {
                     onValueChange={(value) => setSelectedYear(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[120px]">
-                      <SelectValue placeholder="Año" />
+                      <SelectValue placeholder={t.expenses.yearPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((year) => (
@@ -323,7 +324,7 @@ export default function ExpensesPage() {
                       <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total de Gastos</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.expenses.totalExpenses}</p>
                       <div className="flex flex-col gap-1">
                         {Object.entries(totalsByCurrency).map(([currency, total]) => (
                           <p key={currency} className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -339,13 +340,13 @@ export default function ExpensesPage() {
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Registros</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.expenses.totalRecords}</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">
                         {filteredExpenses.length}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Categorías Activas</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.expenses.activeCategories}</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">
                         {Object.keys(expensesByCategory).length}
                       </p>
@@ -359,7 +360,7 @@ export default function ExpensesPage() {
             {categoryStats.length > 0 && (
               <div className="mt-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-6">
                 <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                  Límites por Categoría
+                  {t.expenses.categoryLimits}
                 </h2>
                 <div className="space-y-4">
                   {categoryStats.map(({ category, spent, limit, percentage, isOverLimit, isNearLimit }) => (
@@ -387,7 +388,7 @@ export default function ExpensesPage() {
                             <span className="text-gray-500 dark:text-gray-400"> / {limit.toLocaleString()} {category.currency}</span>
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {percentage.toFixed(0)}% usado
+                            {percentage.toFixed(0)}% {t.expenses.percentageUsed}
                           </p>
                         </div>
                       </div>
@@ -404,12 +405,12 @@ export default function ExpensesPage() {
                       />
                       {isOverLimit && (
                         <p className="text-xs text-red-600 dark:text-red-400">
-                          ⚠️ Has excedido el límite por {(spent - limit).toLocaleString()} {category.currency}
+                          ⚠️ {t.expenses.exceededLimitBy} {(spent - limit).toLocaleString()} {category.currency}
                         </p>
                       )}
                       {isNearLimit && (
                         <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                          ⚠️ Te acercas al límite mensual
+                          ⚠️ {t.expenses.nearMonthlyLimit}
                         </p>
                       )}
                     </div>
@@ -426,24 +427,26 @@ export default function ExpensesPage() {
                   <TrendingDown className="w-10 h-10 text-red-600 dark:text-red-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                  No hay gastos en este mes
+                  {t.expenses.noExpensesThisMonth}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  No se encontraron gastos para {months[selectedMonth].label} {selectedYear}
+                  {t.expenses.noExpensesFound
+                    .replace('{month}', months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1))
+                    .replace('{year}', selectedYear.toString())}
                 </p>
                 <Button
                   onClick={() => setIsFormOpen(true)}
                   className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold shadow-lg shadow-red-500/50 dark:shadow-red-900/50"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  Registrar Primer Gasto
+                  {t.expenses.registerFirstExpense}
                 </Button>
               </div>
             </div>
           ) : (
             <div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                Gastos de {months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1)} {selectedYear} ({filteredExpenses.length})
+                {t.expenses.expensesOf} {months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1)} {selectedYear} ({filteredExpenses.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredExpenses.map((expense) => (
@@ -470,11 +473,11 @@ export default function ExpensesPage() {
           <ConfirmDialog
             open={confirmDialogOpen}
             onOpenChange={setConfirmDialogOpen}
-            title="Eliminar Gasto"
-            description="¿Estás seguro de que deseas eliminar este gasto? Esta acción no se puede deshacer."
+            title={t.expenses.deleteConfirmTitle}
+            description={t.expenses.deleteConfirmDescription}
             onConfirm={confirmDelete}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
+            confirmText={t.common.delete}
+            cancelText={t.common.cancel}
             variant="destructive"
           />
         </div>

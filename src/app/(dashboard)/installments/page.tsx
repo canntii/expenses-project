@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Installment } from '@/lib/types/installment';
 import { Category } from '@/lib/types/category';
 import {
@@ -25,6 +26,7 @@ import { toast } from 'sonner';
 import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
 
 export default function InstallmentsPage() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [installments, setInstallments] = useState<Installment[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,11 +44,11 @@ export default function InstallmentsPage() {
       setInstallments(userInstallments);
     } catch (error) {
       console.error('Error loading installments:', error);
-      toast.error('Error al cargar las cuotas');
+      toast.error(t.installments.loadError);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const loadCategories = useCallback(async () => {
     if (!user) return;
@@ -72,7 +74,7 @@ export default function InstallmentsPage() {
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.installments.rateLimitCreate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -99,10 +101,10 @@ export default function InstallmentsPage() {
       );
       await loadInstallments();
       setIsFormOpen(false);
-      toast.success('Cuota creada exitosamente');
+      toast.success(t.installments.createSuccess);
     } catch (error) {
       console.error('Error creating installment:', error);
-      toast.error('Error al crear la cuota');
+      toast.error(t.installments.createError);
       throw error;
     }
   };
@@ -114,7 +116,7 @@ export default function InstallmentsPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.installments.rateLimitUpdate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -137,10 +139,10 @@ export default function InstallmentsPage() {
       await loadInstallments();
       setSelectedInstallment(null);
       setIsFormOpen(false);
-      toast.success('Cuota actualizada exitosamente');
+      toast.success(t.installments.updateSuccess);
     } catch (error) {
       console.error('Error updating installment:', error);
-      toast.error('Error al actualizar la cuota');
+      toast.error(t.installments.updateError);
       throw error;
     }
   };
@@ -157,7 +159,7 @@ export default function InstallmentsPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.installments.rateLimitDelete.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);
@@ -168,10 +170,10 @@ export default function InstallmentsPage() {
     try {
       await deleteInstallmentDocument(installmentToDelete);
       await loadInstallments();
-      toast.success('Cuota eliminada exitosamente');
+      toast.success(t.installments.deleteSuccess);
     } catch (error) {
       console.error('Error deleting installment:', error);
-      toast.error('Error al eliminar la cuota');
+      toast.error(t.installments.deleteError);
     } finally {
       setConfirmDialogOpen(false);
       setInstallmentToDelete(null);
@@ -180,7 +182,7 @@ export default function InstallmentsPage() {
 
   const handlePayInstallment = async (installment: Installment) => {
     if (installment.current_installment >= installment.installments) {
-      toast.info('Esta cuota ya está completamente pagada');
+      toast.info(t.installments.alreadyPaid);
       return;
     }
 
@@ -190,13 +192,13 @@ export default function InstallmentsPage() {
       await loadInstallments();
 
       if (newCurrent >= installment.installments) {
-        toast.success('🎉 ¡Felicidades! Has completado todas las cuotas');
+        toast.success(t.installments.allInstallmentsPaid);
       } else {
-        toast.success(`Cuota ${newCurrent} pagada exitosamente`);
+        toast.success(t.installments.installmentPaidSuccess.replace('{number}', newCurrent.toString()));
       }
     } catch (error) {
       console.error('Error paying installment:', error);
-      toast.error('Error al pagar la cuota');
+      toast.error(t.installments.payError);
     }
   };
 
@@ -232,10 +234,10 @@ export default function InstallmentsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-2">
-                  Mis Deudas y Cuotas
+                  {t.installments.titlePage}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Administra tus deudas y compras en cuotas
+                  {t.installments.subtitlePage}
                 </p>
               </div>
               <Button
@@ -246,7 +248,7 @@ export default function InstallmentsPage() {
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold shadow-lg shadow-orange-500/50 dark:shadow-orange-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Nueva Deuda/Cuota
+                {t.installments.newDebtInstallment}
               </Button>
             </div>
 
@@ -260,7 +262,7 @@ export default function InstallmentsPage() {
                       <CreditCard className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total por Pagar</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.installments.totalToPay}</p>
                       <div className="flex flex-col gap-1">
                         {Object.entries(totalsByCurrency).map(([currency, amounts]) => (
                           <p key={currency} className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -276,13 +278,13 @@ export default function InstallmentsPage() {
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">En curso</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.installments.inProgress}</p>
                       <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
                         {activeInstallments.length}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Completadas</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.installments.completed}</p>
                       <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                         {completedInstallments.length}
                       </p>
@@ -300,17 +302,17 @@ export default function InstallmentsPage() {
                   <CreditCard className="w-10 h-10 text-orange-600 dark:text-orange-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                  No tienes deudas o cuotas registradas
+                  {t.installments.noInstallments}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Comienza registrando tu primera deuda o compra en cuotas para mantener un control
+                  {t.installments.noInstallmentsDescription}
                 </p>
                 <Button
                   onClick={() => setIsFormOpen(true)}
                   className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold shadow-lg shadow-orange-500/50 dark:shadow-orange-900/50"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  Registrar Primera Cuota
+                  {t.installments.registerFirstInstallment}
                 </Button>
               </div>
             </div>
@@ -320,7 +322,7 @@ export default function InstallmentsPage() {
               {activeInstallments.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                    En Curso ({activeInstallments.length})
+                    {t.installments.inProgressCount.replace('{count}', activeInstallments.length.toString())}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {activeInstallments.map((installment) => (
@@ -340,7 +342,7 @@ export default function InstallmentsPage() {
               {completedInstallments.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                    Completadas ({completedInstallments.length})
+                    {t.installments.completedCount.replace('{count}', completedInstallments.length.toString())}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {completedInstallments.map((installment) => (
@@ -369,11 +371,11 @@ export default function InstallmentsPage() {
           <ConfirmDialog
             open={confirmDialogOpen}
             onOpenChange={setConfirmDialogOpen}
-            title="Eliminar Cuota"
-            description="¿Estás seguro de que deseas eliminar esta cuota? Esta acción no se puede deshacer."
+            title={t.installments.deleteConfirmTitle}
+            description={t.installments.deleteConfirmDescription}
             onConfirm={confirmDelete}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
+            confirmText={t.common.delete}
+            cancelText={t.common.cancel}
             variant="destructive"
           />
         </div>

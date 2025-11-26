@@ -20,10 +20,12 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Plus, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/utils/rateLimiter';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function IncomesPage() {
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [incomes, setIncomes] = useState<Income[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +40,10 @@ export default function IncomesPage() {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
 
   // Generar lista de meses y años disponibles
+  const dateLocale = language === 'en' ? enUS : es;
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: i,
-    label: format(new Date(2024, i, 1), 'MMMM', { locale: es })
+    label: format(new Date(2024, i, 1), 'MMMM', { locale: dateLocale })
   }));
 
   const years = Array.from({ length: 5 }, (_, i) => currentDate.getFullYear() - i);
@@ -53,11 +56,11 @@ export default function IncomesPage() {
       setIncomes(userIncomes);
     } catch (error) {
       console.error('Error loading incomes:', error);
-      toast.error('Error al cargar los ingresos');
+      toast.error(t.incomes.loadError);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     if (user) {
@@ -72,7 +75,7 @@ export default function IncomesPage() {
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.incomes.rateLimitCreate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -93,10 +96,10 @@ export default function IncomesPage() {
       );
       await loadIncomes();
       setIsFormOpen(false);
-      toast.success('Ingreso creado exitosamente');
+      toast.success(t.incomes.createSuccess);
     } catch (error) {
       console.error('Error creating income:', error);
-      toast.error('Error al crear el ingreso');
+      toast.error(t.incomes.createError);
       throw error;
     }
   };
@@ -108,7 +111,7 @@ export default function IncomesPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.incomes.rateLimitUpdate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -119,10 +122,10 @@ export default function IncomesPage() {
       await loadIncomes();
       setSelectedIncome(null);
       setIsFormOpen(false);
-      toast.success('Ingreso actualizado exitosamente');
+      toast.success(t.incomes.updateSuccess);
     } catch (error) {
       console.error('Error updating income:', error);
-      toast.error('Error al actualizar el ingreso');
+      toast.error(t.incomes.updateError);
       throw error;
     }
   };
@@ -139,7 +142,7 @@ export default function IncomesPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.incomes.rateLimitDelete.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);
@@ -150,10 +153,10 @@ export default function IncomesPage() {
     try {
       await deleteIncomeDocument(incomeToDelete);
       await loadIncomes();
-      toast.success('Ingreso eliminado exitosamente');
+      toast.success(t.incomes.deleteSuccess);
     } catch (error) {
       console.error('Error deleting income:', error);
-      toast.error('Error al eliminar el ingreso');
+      toast.error(t.incomes.deleteError);
     } finally {
       setConfirmDialogOpen(false);
       setIncomeToDelete(null);
@@ -197,10 +200,10 @@ export default function IncomesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-                  Mis Ingresos
+                  {t.incomes.title}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Registra y administra tus fuentes de ingreso
+                  {t.incomes.subtitle}
                 </p>
               </div>
               <Button
@@ -211,7 +214,7 @@ export default function IncomesPage() {
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg shadow-green-500/50 dark:shadow-green-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Nuevo Ingreso
+                {t.incomes.newIncome}
               </Button>
             </div>
 
@@ -220,7 +223,7 @@ export default function IncomesPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por:</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
                 </div>
                 <div className="flex gap-3 flex-1 max-w-full">
                   <Select
@@ -228,7 +231,7 @@ export default function IncomesPage() {
                     onValueChange={(value) => setSelectedMonth(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Mes" />
+                      <SelectValue placeholder={t.incomes.monthPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {months.map((month) => (
@@ -243,7 +246,7 @@ export default function IncomesPage() {
                     onValueChange={(value) => setSelectedYear(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[120px]">
-                      <SelectValue placeholder="Año" />
+                      <SelectValue placeholder={t.incomes.yearPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((year) => (
@@ -266,7 +269,7 @@ export default function IncomesPage() {
                       <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total de Ingresos</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.incomes.totalIncomes}</p>
                       <div className="flex flex-col gap-1">
                         {Object.entries(totalsByCurrency).map(([currency, total]) => (
                           <p key={currency} className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -277,7 +280,7 @@ export default function IncomesPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Registros</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{t.incomes.totalRecords}</p>
                     <p className="text-2xl font-semibold">{filteredIncomes.length}</p>
                   </div>
                 </div>
@@ -292,24 +295,26 @@ export default function IncomesPage() {
                   <TrendingUp className="w-10 h-10 text-green-600 dark:text-green-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                  No hay ingresos en este mes
+                  {t.incomes.noIncomesThisMonth}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  No se encontraron ingresos para {months[selectedMonth].label} {selectedYear}
+                  {t.incomes.noIncomesFound
+                    .replace('{month}', months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1))
+                    .replace('{year}', selectedYear.toString())}
                 </p>
                 <Button
                   onClick={() => setIsFormOpen(true)}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg shadow-green-500/50 dark:shadow-green-900/50"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  Registrar Primer Ingreso
+                  {t.incomes.registerFirstIncome}
                 </Button>
               </div>
             </div>
           ) : (
             <div>
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-                Ingresos de {months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1)} {selectedYear} ({filteredIncomes.length})
+                {t.incomes.incomesOf} {months[selectedMonth].label.charAt(0).toUpperCase() + months[selectedMonth].label.slice(1)} {selectedYear} ({filteredIncomes.length})
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredIncomes.map((income) => (
@@ -334,11 +339,11 @@ export default function IncomesPage() {
           <ConfirmDialog
             open={confirmDialogOpen}
             onOpenChange={setConfirmDialogOpen}
-            title="Eliminar Ingreso"
-            description="¿Estás seguro de que deseas eliminar este ingreso? Esta acción no se puede deshacer."
+            title={t.incomes.deleteConfirmTitle}
+            description={t.incomes.deleteConfirmDescription}
             onConfirm={confirmDelete}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
+            confirmText={t.common.delete}
+            cancelText={t.common.cancel}
             variant="destructive"
           />
         </div>

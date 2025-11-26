@@ -3,7 +3,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Calendar, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IncomeCardProps {
   income: Income;
@@ -12,10 +13,14 @@ interface IncomeCardProps {
 }
 
 export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps) {
+  const { t, language } = useLanguage();
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return format(date, "d 'de' MMMM, yyyy", { locale: es });
+    const dateLocale = language === 'en' ? enUS : es;
+    const dateFormat = language === 'en' ? "MMMM d, yyyy" : "d 'de' MMMM, yyyy";
+    return format(date, dateFormat, { locale: dateLocale });
   };
 
   return (
@@ -24,7 +29,7 @@ export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps
         <CardTitle className="flex items-center justify-between">
           <span className="text-xl font-semibold">{income.source}</span>
           <span className="text-sm font-normal text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-            Ingreso
+            {t.incomes.incomeLabel}
           </span>
         </CardTitle>
       </CardHeader>
@@ -32,7 +37,7 @@ export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
-            Monto:
+            {t.incomes.amountLabel}
           </span>
           <span className="text-2xl font-bold text-green-600 dark:text-green-400">
             {income.amount.toLocaleString()} {income.currency}
@@ -41,12 +46,12 @@ export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Fecha de recibo:
+            {t.incomes.receivedDateLabel}
           </span>
           <span className="text-sm font-medium">{formatDate(income.receivedAt)}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Moneda:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.incomes.currencyLabel}</span>
           <span className="text-sm font-medium">{income.currency}</span>
         </div>
       </CardContent>
@@ -58,7 +63,7 @@ export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps
           onClick={() => onEdit(income)}
         >
           <Pencil className="w-4 h-4 mr-2" />
-          Editar
+          {t.incomes.editButton}
         </Button>
         <Button
           variant="outline"
@@ -67,7 +72,7 @@ export default function IncomeCard({ income, onEdit, onDelete }: IncomeCardProps
           onClick={() => onDelete(income.uid)}
         >
           <Trash2 className="w-4 h-4 mr-2" />
-          Eliminar
+          {t.incomes.deleteButton}
         </Button>
       </CardFooter>
     </Card>

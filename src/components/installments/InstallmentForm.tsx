@@ -24,6 +24,7 @@ import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InstallmentFormProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface InstallmentFormProps {
 }
 
 export default function InstallmentForm({ open, onClose, onSubmit, installment, categories }: InstallmentFormProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
     description: string;
@@ -116,27 +118,27 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       const sanitizedTax = sanitizeNumber(formData.tax);
 
       if (!sanitizedDescription || sanitizedDescription.length < 3) {
-        toast.error('La descripción debe tener al menos 3 caracteres');
+        toast.error(t.installments.descriptionValidation);
         return;
       }
 
       if (!sanitizedTotalAmount || sanitizedTotalAmount <= 0) {
-        toast.error('El monto total debe ser mayor a 0');
+        toast.error(t.installments.totalAmountValidation);
         return;
       }
 
       if (!sanitizedInstallments || sanitizedInstallments <= 0) {
-        toast.error('El número de cuotas debe ser mayor a 0');
+        toast.error(t.installments.installmentsValidation);
         return;
       }
 
       if (!formData.category_id) {
-        toast.error('Debes seleccionar una categoría');
+        toast.error(t.installments.categoryValidation);
         return;
       }
 
       if (!formData.start_date) {
-        toast.error('Debes seleccionar una fecha de inicio');
+        toast.error(t.installments.startDateValidation);
         return;
       }
 
@@ -157,7 +159,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       });
     } catch (error: any) {
       console.error('Error submitting installment:', error);
-      toast.error(error.message || 'Error al guardar la cuota');
+      toast.error(error.message || t.installments.saveError);
     } finally {
       setLoading(false);
     }
@@ -168,21 +170,19 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
       <DialogContent className="sm:max-w-[600px] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            {installment ? 'Editar Deuda/Cuota' : 'Nueva Deuda/Cuota'}
+            {installment ? t.installments.formTitleEdit : t.installments.formTitleNew}
           </DialogTitle>
           <DialogDescription>
-            {installment
-              ? 'Modifica los detalles de tu deuda o cuota'
-              : 'Registra una nueva deuda o compra en cuotas'}
+            {installment ? t.installments.formDescriptionEdit : t.installments.formDescriptionNew}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
+              <Label htmlFor="description">{t.installments.descriptionField}</Label>
               <Textarea
                 id="description"
-                placeholder="Ej: Tarjeta de crédito, Préstamo personal, Laptop en cuotas"
+                placeholder={t.installments.descriptionPlaceholder}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="bg-white dark:bg-gray-900 min-h-[60px]"
@@ -191,13 +191,13 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría</Label>
+              <Label htmlFor="category">{t.installments.categoryField}</Label>
               <Select
                 value={formData.category_id}
                 onValueChange={(value) => setFormData({ ...formData, category_id: value })}
               >
                 <SelectTrigger className="bg-white dark:bg-gray-900">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder={t.installments.selectCategoryPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -211,13 +211,13 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tax">Impuesto (%)</Label>
+              <Label htmlFor="tax">{t.installments.taxField}</Label>
               <Input
                 id="tax"
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="13"
+                placeholder={t.installments.taxPlaceholder}
                 value={formData.tax}
                 onChange={(e) =>
                   setFormData({ ...formData, tax: e.target.value === '' ? '' : parseFloat(e.target.value) })
@@ -225,19 +225,19 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
                 className="bg-white dark:bg-gray-900"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Porcentaje de impuesto aplicado al monto total
+                {t.installments.taxHelp}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="total_amount">Monto Total</Label>
+                <Label htmlFor="total_amount">{t.installments.totalAmountField}</Label>
                 <Input
                   id="total_amount"
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="500000"
+                  placeholder={t.installments.totalAmountPlaceholder}
                   value={formData.total_amount}
                   onChange={(e) =>
                     setFormData({ ...formData, total_amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
@@ -248,21 +248,21 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="currency">Moneda</Label>
+                <Label htmlFor="currency">{t.installments.currencyField}</Label>
                 <Select
                   value={formData.currency}
                   onValueChange={(value) => setFormData({ ...formData, currency: value })}
                 >
                   <SelectTrigger className="bg-white dark:bg-gray-900">
-                    <SelectValue placeholder="Selecciona moneda" />
+                    <SelectValue placeholder={t.installments.selectCurrencyPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CRC">CRC - Colón Costarricense</SelectItem>
-                    <SelectItem value="USD">USD - Dólar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                    <SelectItem value="COP">COP - Peso Colombiano</SelectItem>
-                    <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                    <SelectItem value="CRC">{t.currencies.CRC}</SelectItem>
+                    <SelectItem value="USD">{t.currencies.USD}</SelectItem>
+                    <SelectItem value="EUR">{t.currencies.EUR}</SelectItem>
+                    <SelectItem value="MXN">{t.currencies.MXN}</SelectItem>
+                    <SelectItem value="COP">{t.currencies.COP}</SelectItem>
+                    <SelectItem value="ARS">{t.currencies.ARS}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -270,12 +270,12 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="installments">Número de Cuotas</Label>
+                <Label htmlFor="installments">{t.installments.installmentsField}</Label>
                 <Input
                   id="installments"
                   type="number"
                   min="1"
-                  placeholder="12"
+                  placeholder={t.installments.installmentsPlaceholder}
                   value={formData.installments}
                   onChange={(e) =>
                     setFormData({ ...formData, installments: e.target.value === '' ? '' : parseInt(e.target.value) })
@@ -286,13 +286,13 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="current_installment">Cuota Actual</Label>
+                <Label htmlFor="current_installment">{t.installments.currentInstallmentField}</Label>
                 <Input
                   id="current_installment"
                   type="number"
                   min="0"
                   max={typeof formData.installments === 'number' ? formData.installments : undefined}
-                  placeholder="0"
+                  placeholder={t.installments.currentInstallmentPlaceholder}
                   value={formData.current_installment}
                   onChange={(e) =>
                     setFormData({ ...formData, current_installment: e.target.value === '' ? '' : parseInt(e.target.value) })
@@ -304,7 +304,7 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="start_date">Fecha de Inicio</Label>
+              <Label htmlFor="start_date">{t.installments.startDateField}</Label>
               <Input
                 id="start_date"
                 type="date"
@@ -318,24 +318,26 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
             {/* Información calculada */}
             <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                💡 Información calculada:
+                {t.installments.calculatedInfo}
               </p>
               <div className="space-y-1">
                 {(typeof formData.tax === 'number' && formData.tax > 0) && (
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Total con impuesto: <span className="font-semibold">
+                    {t.installments.totalWithTax} <span className="font-semibold">
                       {calculateTotalWithTax().toLocaleString()} {formData.currency}
                     </span>
                   </p>
                 )}
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Cuota mensual: <span className="font-semibold text-orange-600 dark:text-orange-400">
+                  {t.installments.monthlyPayment} <span className="font-semibold text-orange-600 dark:text-orange-400">
                     {calculateMonthlyAmount().toLocaleString()} {formData.currency}
                   </span>
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Progreso: <span className="font-semibold">
-                    {formData.current_installment} / {formData.installments} cuotas
+                  {t.installments.progressInfo} <span className="font-semibold">
+                    {t.installments.installmentsProgress
+                      .replace('{current}', formData.current_installment.toString())
+                      .replace('{total}', formData.installments.toString())}
                   </span>
                 </p>
               </div>
@@ -350,14 +352,14 @@ export default function InstallmentForm({ open, onClose, onSubmit, installment, 
               disabled={loading}
               className="hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancelar
+              {t.installments.cancelButton}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold shadow-lg shadow-orange-500/50 dark:shadow-orange-900/50"
             >
-              {loading ? 'Guardando...' : installment ? 'Actualizar' : 'Crear'}
+              {loading ? t.installments.savingButton : installment ? t.installments.updateButton : t.installments.createButton}
             </Button>
           </DialogFooter>
         </form>

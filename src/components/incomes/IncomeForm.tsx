@@ -22,6 +22,7 @@ import { Timestamp } from 'firebase/firestore';
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IncomeFormProps {
   open: boolean;
@@ -31,6 +32,7 @@ interface IncomeFormProps {
 }
 
 export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFormProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<{
     source: string;
@@ -71,17 +73,17 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
       const sanitizedAmount = sanitizeNumber(formData.amount);
 
       if (!sanitizedSource || sanitizedSource.length < 2) {
-        toast.error('La fuente debe tener al menos 2 caracteres');
+        toast.error(t.incomes.sourceValidation);
         return;
       }
 
       if (!sanitizedAmount || sanitizedAmount <= 0) {
-        toast.error('El monto debe ser mayor a 0');
+        toast.error(t.incomes.amountValidation);
         return;
       }
 
       if (!formData.receivedAt) {
-        toast.error('Debes seleccionar una fecha');
+        toast.error(t.incomes.dateValidation);
         return;
       }
 
@@ -95,7 +97,7 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
       });
     } catch (error: any) {
       console.error('Error submitting income:', error);
-      toast.error(error.message || 'Error al guardar el ingreso');
+      toast.error(error.message || t.incomes.saveError);
     } finally {
       setLoading(false);
     }
@@ -106,21 +108,19 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
       <DialogContent className="sm:max-w-[500px] bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            {income ? 'Editar Ingreso' : 'Nuevo Ingreso'}
+            {income ? t.incomes.formTitleEdit : t.incomes.formTitleNew}
           </DialogTitle>
           <DialogDescription>
-            {income
-              ? 'Modifica los detalles de tu ingreso'
-              : 'Registra un nuevo ingreso en tu cuenta'}
+            {income ? t.incomes.formDescriptionEdit : t.incomes.formDescriptionNew}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="source">Fuente de Ingreso</Label>
+              <Label htmlFor="source">{t.incomes.sourceField}</Label>
               <Input
                 id="source"
-                placeholder="Ej: Salario, Freelance, Venta"
+                placeholder={t.incomes.sourcePlaceholder}
                 value={formData.source}
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                 className="bg-white dark:bg-gray-900"
@@ -130,13 +130,13 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="amount">Monto</Label>
+                <Label htmlFor="amount">{t.incomes.amountField}</Label>
                 <Input
                   id="amount"
                   type="number"
                   min="0.01"
                   step="0.01"
-                  placeholder="450000"
+                  placeholder={t.incomes.amountPlaceholder}
                   value={formData.amount}
                   onChange={(e) =>
                     setFormData({ ...formData, amount: e.target.value === '' ? '' : parseFloat(e.target.value) })
@@ -147,28 +147,28 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="currency">Moneda</Label>
+                <Label htmlFor="currency">{t.incomes.currencyField}</Label>
                 <Select
                   value={formData.currency}
                   onValueChange={(value) => setFormData({ ...formData, currency: value })}
                 >
                   <SelectTrigger className="bg-white dark:bg-gray-900">
-                    <SelectValue placeholder="Selecciona moneda" />
+                    <SelectValue placeholder={t.incomes.selectCurrencyPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CRC">CRC - Colón Costarricense</SelectItem>
-                    <SelectItem value="USD">USD - Dólar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="MXN">MXN - Peso Mexicano</SelectItem>
-                    <SelectItem value="COP">COP - Peso Colombiano</SelectItem>
-                    <SelectItem value="ARS">ARS - Peso Argentino</SelectItem>
+                    <SelectItem value="CRC">{t.currencies.CRC}</SelectItem>
+                    <SelectItem value="USD">{t.currencies.USD}</SelectItem>
+                    <SelectItem value="EUR">{t.currencies.EUR}</SelectItem>
+                    <SelectItem value="MXN">{t.currencies.MXN}</SelectItem>
+                    <SelectItem value="COP">{t.currencies.COP}</SelectItem>
+                    <SelectItem value="ARS">{t.currencies.ARS}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="receivedAt">Fecha de Recibo</Label>
+              <Label htmlFor="receivedAt">{t.incomes.receivedDateField}</Label>
               <Input
                 id="receivedAt"
                 type="date"
@@ -188,14 +188,14 @@ export default function IncomeForm({ open, onClose, onSubmit, income }: IncomeFo
               disabled={loading}
               className="hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Cancelar
+              {t.incomes.cancelButton}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold shadow-lg shadow-green-500/50 dark:shadow-green-900/50"
             >
-              {loading ? 'Guardando...' : income ? 'Actualizar' : 'Crear'}
+              {loading ? t.incomes.savingButton : income ? t.incomes.updateButton : t.incomes.createButton}
             </Button>
           </DialogFooter>
         </form>

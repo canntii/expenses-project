@@ -3,8 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Calendar, DollarSign, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 import { getInstallmentProgress, getRemainingAmount } from '@/lib/firebase/firestore/installments';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InstallmentCardProps {
   installment: Installment;
@@ -14,10 +15,14 @@ interface InstallmentCardProps {
 }
 
 export default function InstallmentCard({ installment, onEdit, onDelete, onPayInstallment }: InstallmentCardProps) {
+  const { t, language } = useLanguage();
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return format(date, "d 'de' MMMM, yyyy", { locale: es });
+    const dateLocale = language === 'en' ? enUS : es;
+    const dateFormat = language === 'en' ? "MMMM d, yyyy" : "d 'de' MMMM, yyyy";
+    return format(date, dateFormat, { locale: dateLocale });
   };
 
   const progress = getInstallmentProgress(installment);
@@ -38,7 +43,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
               ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30'
               : 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30'
           }`}>
-            {isComplete ? 'Completado' : 'En curso'}
+            {isComplete ? t.installments.completedStatus : t.installments.inProgressStatus}
           </span>
         </CardTitle>
       </CardHeader>
@@ -46,7 +51,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
         {/* Barra de progreso */}
         <div className="space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Progreso</span>
+            <span className="text-gray-600 dark:text-gray-400">{t.installments.progressLabel}</span>
             <span className="font-medium">{installment.current_installment} / {installment.installments}</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
@@ -62,7 +67,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
         <div className="flex justify-between items-center pt-2">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
-            Cuota mensual:
+            {t.installments.monthlyPaymentLabel}
           </span>
           <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
             {installment.monthly_amount.toLocaleString()} {installment.currency}
@@ -72,7 +77,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <TrendingUp className="w-4 h-4" />
-            Monto total:
+            {t.installments.totalAmountLabel}
           </span>
           <span className="text-sm font-medium">
             {installment.total_amount.toLocaleString()} {installment.currency}
@@ -80,7 +85,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
         </div>
 
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Por pagar:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">{t.installments.remainingLabel}</span>
           <span className="text-sm font-medium text-red-600 dark:text-red-400">
             {remainingAmount.toLocaleString()} {installment.currency}
           </span>
@@ -89,7 +94,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
         <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Inicio:
+            {t.installments.startDateLabel}
           </span>
           <span className="text-sm font-medium">{formatDate(installment.start_date)}</span>
         </div>
@@ -101,7 +106,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
             className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
             onClick={() => onPayInstallment(installment)}
           >
-            Pagar Cuota
+            {t.installments.payInstallmentButton}
           </Button>
         )}
         <Button
@@ -111,7 +116,7 @@ export default function InstallmentCard({ installment, onEdit, onDelete, onPayIn
           onClick={() => onEdit(installment)}
         >
           <Pencil className="w-4 h-4 mr-2" />
-          Editar
+          {t.installments.editButton}
         </Button>
         <Button
           variant="outline"

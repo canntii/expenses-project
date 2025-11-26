@@ -336,11 +336,11 @@ export default function CategoriesPage() {
         <ConfirmDialog
           open={confirmDialogOpen}
           onOpenChange={setConfirmDialogOpen}
-          title="Eliminar Categoría"
-          description="¿Estás seguro de que deseas eliminar esta categoría? Esta acción no se puede deshacer."
+          title={t.categories.deleteConfirmTitle}
+          description={t.categories.deleteConfirmDescription}
           onConfirm={confirmDelete}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          confirmText={t.common.delete}
+          cancelText={t.common.cancel}
           variant="destructive"
         />
       </div>

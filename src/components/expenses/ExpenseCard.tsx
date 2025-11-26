@@ -4,7 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Calendar, DollarSign, Tag, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -14,19 +15,23 @@ interface ExpenseCardProps {
 }
 
 export default function ExpenseCard({ expense, category, onEdit, onDelete }: ExpenseCardProps) {
+  const { t, language } = useLanguage();
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'N/A';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return format(date, "d 'de' MMMM, yyyy", { locale: es });
+    const dateLocale = language === 'en' ? enUS : es;
+    const dateFormat = language === 'en' ? "MMMM d, yyyy" : "d 'de' MMMM, yyyy";
+    return format(date, dateFormat, { locale: dateLocale });
   };
 
   return (
     <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-200">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span className="text-xl font-semibold truncate">{category?.name || 'Sin categoría'}</span>
+          <span className="text-xl font-semibold truncate">{category?.name || t.expenses.noCategory}</span>
           <span className="text-sm font-normal text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full">
-            Gasto
+            {t.expenses.expenseLabel}
           </span>
         </CardTitle>
       </CardHeader>
@@ -34,7 +39,7 @@ export default function ExpenseCard({ expense, category, onEdit, onDelete }: Exp
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
-            Monto:
+            {t.expenses.amountLabel}
           </span>
           <span className="text-2xl font-bold text-red-600 dark:text-red-400">
             {expense.amount.toLocaleString()} {expense.currency}
@@ -43,7 +48,7 @@ export default function ExpenseCard({ expense, category, onEdit, onDelete }: Exp
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Fecha:
+            {t.expenses.dateLabel}
           </span>
           <span className="text-sm font-medium">{formatDate(expense.date)}</span>
         </div>
@@ -51,7 +56,7 @@ export default function ExpenseCard({ expense, category, onEdit, onDelete }: Exp
           <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
             <span className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2 mb-1">
               <FileText className="w-4 h-4" />
-              Nota:
+              {t.expenses.noteLabel}
             </span>
             <p className="text-sm text-gray-700 dark:text-gray-300 italic">{expense.note}</p>
           </div>
@@ -65,7 +70,7 @@ export default function ExpenseCard({ expense, category, onEdit, onDelete }: Exp
           onClick={() => onEdit(expense)}
         >
           <Pencil className="w-4 h-4 mr-2" />
-          Editar
+          {t.expenses.editButton}
         </Button>
         <Button
           variant="outline"
@@ -74,7 +79,7 @@ export default function ExpenseCard({ expense, category, onEdit, onDelete }: Exp
           onClick={() => onDelete(expense.uid)}
         >
           <Trash2 className="w-4 h-4 mr-2" />
-          Eliminar
+          {t.expenses.deleteButton}
         </Button>
       </CardFooter>
     </Card>
