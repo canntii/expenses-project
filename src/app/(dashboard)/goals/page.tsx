@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Goal from '@/lib/types/goal';
 import {
   createGoalDocument,
@@ -25,6 +26,7 @@ import { createRateLimiter, updateRateLimiter, deleteRateLimiter } from '@/lib/u
 
 export default function GoalsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function GoalsPage() {
       setGoals(userGoals);
     } catch (error) {
       console.error('Error loading goals:', error);
-      toast.error('Error al cargar los objetivos');
+      toast.error(t.goals.loadError);
     } finally {
       setLoading(false);
     }
@@ -61,7 +63,7 @@ export default function GoalsPage() {
     const rateLimitCheck = createRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de creaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.goals.rateLimitCreate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -82,10 +84,10 @@ export default function GoalsPage() {
       );
       await loadGoals();
       setIsFormOpen(false);
-      toast.success('Objetivo creado exitosamente');
+      toast.success(t.goals.createSuccess);
     } catch (error) {
       console.error('Error creating goal:', error);
-      toast.error('Error al crear el objetivo');
+      toast.error(t.goals.createError);
       throw error;
     }
   };
@@ -97,7 +99,7 @@ export default function GoalsPage() {
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de actualizaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.goals.rateLimitUpdate.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       return;
@@ -113,10 +115,10 @@ export default function GoalsPage() {
       await loadGoals();
       setSelectedGoal(null);
       setIsFormOpen(false);
-      toast.success('Objetivo actualizado exitosamente');
+      toast.success(t.goals.updateSuccess);
     } catch (error) {
       console.error('Error updating goal:', error);
-      toast.error('Error al actualizar el objetivo');
+      toast.error(t.goals.updateError);
       throw error;
     }
   };
@@ -133,7 +135,7 @@ export default function GoalsPage() {
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
       toast.error(
-        `Has excedido el límite de eliminaciones. Intenta nuevamente en ${rateLimitCheck.retryAfter} segundos.`,
+        t.goals.rateLimitDelete.replace('{seconds}', rateLimitCheck.retryAfter?.toString() || '0'),
         { duration: 5000 }
       );
       setConfirmDialogOpen(false);
@@ -144,10 +146,10 @@ export default function GoalsPage() {
     try {
       await deleteGoalDocument(goalToDelete);
       await loadGoals();
-      toast.success('Objetivo eliminado exitosamente');
+      toast.success(t.goals.deleteSuccess);
     } catch (error) {
       console.error('Error deleting goal:', error);
-      toast.error('Error al eliminar el objetivo');
+      toast.error(t.goals.deleteError);
     } finally {
       setConfirmDialogOpen(false);
       setGoalToDelete(null);
@@ -174,10 +176,10 @@ export default function GoalsPage() {
     try {
       await addContributionToGoal(goalForContribution.uid, amount);
       await loadGoals();
-      toast.success('Abono agregado exitosamente');
+      toast.success(t.goals.contributionSuccess);
     } catch (error) {
       console.error('Error adding contribution:', error);
-      toast.error('Error al agregar el abono');
+      toast.error(t.goals.contributionError);
       throw error;
     }
   };
@@ -204,10 +206,10 @@ export default function GoalsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div>
                 <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent mb-2">
-                  Mis Objetivos
+                  {t.goals.title}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Planifica y ahorra para tus metas financieras
+                  {t.goals.subtitle}
                 </p>
               </div>
               <Button
@@ -218,7 +220,7 @@ export default function GoalsPage() {
                 className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-semibold shadow-lg shadow-amber-500/50 dark:shadow-amber-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Nuevo Objetivo
+                {t.goals.newGoal}
               </Button>
             </div>
 
@@ -232,7 +234,7 @@ export default function GoalsPage() {
                       <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Total Ahorrado</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.goals.totalSaved}</p>
                       <div className="flex flex-col gap-1">
                         {Object.entries(totalsByCurrency).map(([currency, totals]) => (
                           <p key={currency} className="text-xl font-bold text-green-600 dark:text-green-400">
@@ -251,7 +253,7 @@ export default function GoalsPage() {
                       <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Objetivos Activos</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.goals.activeGoals}</p>
                       <p className="text-3xl font-bold text-gray-800 dark:text-gray-200">
                         {activeGoals.length}
                       </p>
@@ -266,7 +268,7 @@ export default function GoalsPage() {
                       <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Completados</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{t.goals.completedGoals}</p>
                       <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                         {completedGoals.length}
                       </p>
@@ -284,17 +286,17 @@ export default function GoalsPage() {
                   <Target className="w-10 h-10 text-amber-600 dark:text-amber-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                  No tienes objetivos registrados
+                  {t.goals.noGoals}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Comienza a planificar tus metas financieras creando tu primer objetivo
+                  {t.goals.startGoals}
                 </p>
                 <Button
                   onClick={() => setIsFormOpen(true)}
                   className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-semibold shadow-lg shadow-amber-500/50 dark:shadow-amber-900/50"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  Crear Primer Objetivo
+                  {t.goals.createFirstGoal}
                 </Button>
               </div>
             </div>
@@ -305,7 +307,7 @@ export default function GoalsPage() {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                     <Clock className="w-6 h-6 text-amber-600" />
-                    Objetivos Activos ({activeGoals.length})
+                    {t.goals.activeGoalsCount.replace('{count}', activeGoals.length.toString())}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {activeGoals.map((goal) => (
@@ -326,7 +328,7 @@ export default function GoalsPage() {
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                     <CheckCircle2 className="w-6 h-6 text-green-600" />
-                    Objetivos Completados ({completedGoals.length})
+                    {t.goals.completedGoalsCount.replace('{count}', completedGoals.length.toString())}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {completedGoals.map((goal) => (
@@ -361,11 +363,11 @@ export default function GoalsPage() {
           <ConfirmDialog
             open={confirmDialogOpen}
             onOpenChange={setConfirmDialogOpen}
-            title="Eliminar Objetivo"
-            description="¿Estás seguro de que deseas eliminar este objetivo? Esta acción no se puede deshacer."
+            title={t.goals.deleteConfirmTitle}
+            description={t.goals.deleteConfirmDescription}
             onConfirm={confirmDelete}
-            confirmText="Eliminar"
-            cancelText="Cancelar"
+            confirmText={t.common.delete}
+            cancelText={t.common.cancel}
             variant="destructive"
           />
         </div>

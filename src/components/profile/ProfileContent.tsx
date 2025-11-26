@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User as UserIcon, Mail, LogOut, Shield, Save, X, Languages } from "lucide-react";
+import { User as UserIcon, Mail, LogOut, Shield, Save, X, Languages, Palette } from "lucide-react";
 import { User, UpdateUserData } from "@/lib/types/user";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ThemeSwitch } from "@/components/theme/ThemeSwitch";
 
 interface ProfileContentProps {
   user: User;
@@ -193,6 +194,19 @@ export default function ProfileContent({ user, onSave }: ProfileContentProps) {
                 ))}
               </SelectContent>
             </Select>
+          </CardContent>
+        </Card>
+
+        {/* Theme Preferences */}
+        <Card className="border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Palette className="w-5 h-5 text-purple-600" />
+              {t.profile.theme}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
+            <ThemeSwitch />
           </CardContent>
         </Card>
 

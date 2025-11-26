@@ -9,7 +9,6 @@ import { updateUserDocument } from "@/lib/firebase/firestore/users";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 
 export default function UserPage() {
@@ -60,17 +59,13 @@ export default function UserPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
         <div className="max-w-5xl mx-auto mt-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                {t.profile.title}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t.profile.subtitle}
-              </p>
-            </div>
-
-            <ThemeToggle />
+          <div className="mb-8">
+            <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              {t.profile.title}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              {t.profile.subtitle}
+            </p>
           </div>
 
           <div className="space-y-6">

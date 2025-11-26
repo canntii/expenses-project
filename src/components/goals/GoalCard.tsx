@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, Target, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { getGoalProgress, getRemainingAmount, getDaysRemaining, isGoalComplete } from '@/lib/firebase/firestore/goals';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface GoalCardProps {
   goal: Goal;
@@ -15,6 +16,7 @@ interface GoalCardProps {
 }
 
 export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: GoalCardProps) {
+  const { t, language } = useLanguage();
   const progress = getGoalProgress(goal);
   const remaining = getRemainingAmount(goal);
   const daysLeft = getDaysRemaining(goal);
@@ -23,6 +25,8 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
   const isNearDeadline = daysLeft <= 30 && daysLeft >= 0;
 
   const dueDate = goal.dueDate instanceof Date ? goal.dueDate : (goal.dueDate as any).toDate();
+  const dateLocale = language === 'en' ? enUS : es;
+  const dateFormat = language === 'en' ? "MMMM d, yyyy" : "d 'de' MMMM, yyyy";
 
   return (
     <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:shadow-xl transition-all duration-200">
@@ -36,7 +40,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
             {completed && (
               <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm font-medium">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Objetivo Cumplido!</span>
+                <span>{t.goals.goalCompleted}</span>
               </div>
             )}
           </div>
@@ -66,7 +70,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Progreso
+              {t.goals.progress}
             </span>
             <span className="text-sm font-bold text-amber-600 dark:text-amber-400">
               {progress.toFixed(1)}%
@@ -88,13 +92,13 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
         {/* Montos */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Ahorrado</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t.goals.saved}</p>
             <p className="text-lg font-bold text-green-600 dark:text-green-400">
               {goal.currentAmount.toLocaleString()} {goal.currency}
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Objetivo</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t.goals.target}</p>
             <p className="text-lg font-bold text-gray-800 dark:text-gray-200">
               {goal.targetAmount.toLocaleString()} {goal.currency}
             </p>
@@ -106,7 +110,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
           <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Falta ahorrar:
+                {t.goals.remainingToSave}
               </span>
               <span className="text-lg font-bold text-amber-600 dark:text-amber-400">
                 {remaining.toLocaleString()} {goal.currency}
@@ -119,7 +123,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4 text-gray-500" />
           <span className="text-gray-600 dark:text-gray-400">
-            Fecha limite:
+            {t.goals.deadline}
           </span>
           <span className={`font-semibold ${
             isOverdue
@@ -128,7 +132,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
               ? 'text-yellow-600 dark:text-yellow-400'
               : 'text-gray-800 dark:text-gray-200'
           }`}>
-            {format(dueDate, "d 'de' MMMM, yyyy", { locale: es })}
+            {format(dueDate, dateFormat, { locale: dateLocale })}
           </span>
         </div>
 
@@ -149,12 +153,12 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
                 : 'text-blue-600 dark:text-blue-400'
             }`}>
               {isOverdue
-                ? `Vencio hace ${Math.abs(daysLeft)} dias`
+                ? t.goals.expiredDays.replace('{days}', Math.abs(daysLeft).toString())
                 : daysLeft === 0
-                ? 'Vence hoy!'
+                ? t.goals.expiresToday
                 : daysLeft === 1
-                ? 'Vence manana'
-                : `${daysLeft} dias restantes`
+                ? t.goals.expiresTomorrow
+                : t.goals.daysRemaining.replace('{days}', daysLeft.toString())
               }
             </span>
           </div>
@@ -167,7 +171,7 @@ export default function GoalCard({ goal, onEdit, onDelete, onAddContribution }: 
             className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-semibold shadow-lg"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
-            Agregar Abono
+            {t.goals.addContribution}
           </Button>
         )}
       </CardContent>

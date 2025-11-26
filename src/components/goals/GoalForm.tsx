@@ -19,6 +19,7 @@ import {
 import { createLocalDate, dateToLocalString } from '@/lib/utils/dates';
 import { sanitizeNumber, sanitizeWithMaxLength } from '@/lib/utils/sanitize';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface GoalFormProps {
   open: boolean;
@@ -28,6 +29,7 @@ interface GoalFormProps {
 }
 
 export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     title: '',
     targetAmount: 0,
@@ -63,17 +65,17 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
       const sanitizedAmount = sanitizeNumber(formData.targetAmount);
 
       if (!sanitizedTitle || sanitizedTitle.length < 3) {
-        toast.error('El título debe tener al menos 3 caracteres');
+        toast.error(t.goals.titleValidation);
         return;
       }
 
       if (!sanitizedAmount || sanitizedAmount <= 0) {
-        toast.error('El monto objetivo debe ser mayor a 0');
+        toast.error(t.goals.amountValidation);
         return;
       }
 
       if (!formData.dueDate) {
-        toast.error('Debes seleccionar una fecha límite');
+        toast.error(t.goals.dueDateValidation);
         return;
       }
 
@@ -87,7 +89,7 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
       onClose();
     } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast.error(error.message || 'Error al guardar el objetivo');
+      toast.error(error.message || t.goals.saveError);
     } finally {
       setLoading(false);
     }
@@ -98,31 +100,31 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-yellow-600 bg-clip-text text-transparent">
-            {goal ? 'Editar Objetivo' : 'Nuevo Objetivo'}
+            {goal ? t.goals.formTitleEdit : t.goals.formTitleNew}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Titulo del Objetivo</Label>
+            <Label htmlFor="title">{t.goals.titleField}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Ej: Fondo de emergencia, Vacaciones, Auto nuevo"
+              placeholder={t.goals.titlePlaceholder}
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="targetAmount">Monto Objetivo</Label>
+              <Label htmlFor="targetAmount">{t.goals.targetAmountField}</Label>
               <Input
                 id="targetAmount"
                 type="number"
                 min="0"
                 step="0.01"
-                placeholder="1000000"
+                placeholder={t.goals.targetAmountPlaceholder}
                 value={formData.targetAmount || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, targetAmount: parseFloat(e.target.value) || 0 })
@@ -132,25 +134,25 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="currency">Moneda</Label>
+              <Label htmlFor="currency">{t.goals.currencyField}</Label>
               <Select
                 value={formData.currency}
                 onValueChange={(value) => setFormData({ ...formData, currency: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Moneda" />
+                  <SelectValue placeholder={t.goals.currencyPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="CRC">CRC (Colones)</SelectItem>
-                  <SelectItem value="USD">USD (Dolares)</SelectItem>
-                  <SelectItem value="EUR">EUR (Euros)</SelectItem>
+                  <SelectItem value="CRC">{t.currencies.CRC}</SelectItem>
+                  <SelectItem value="USD">{t.currencies.USD}</SelectItem>
+                  <SelectItem value="EUR">{t.currencies.EUR}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Fecha Limite</Label>
+            <Label htmlFor="dueDate">{t.goals.dueDateField}</Label>
             <Input
               id="dueDate"
               type="date"
@@ -168,14 +170,14 @@ export default function GoalForm({ open, onClose, onSubmit, goal }: GoalFormProp
               className="flex-1"
               disabled={loading}
             >
-              Cancelar
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
               className="flex-1 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-white font-semibold"
               disabled={loading}
             >
-              {loading ? 'Guardando...' : goal ? 'Actualizar' : 'Crear'}
+              {loading ? t.goals.saving : goal ? t.goals.update : t.goals.create}
             </Button>
           </div>
         </form>
