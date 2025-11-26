@@ -6,8 +6,8 @@ export interface User {
   name: string;
   photoURL?: string;
   language: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface CreateUserData {

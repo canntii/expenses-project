@@ -16,22 +16,41 @@ export default function ProfileHeader({ user, onEditClick }: ProfileHeaderProps)
   const { language, t } = useLanguage();
 
   const getInitials = (name: string) => {
-    return name
+    if (!name || name.trim() === '') return '??';
+    const initials = name
       .split(' ')
+      .filter(n => n.length > 0)
       .map(n => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
+    return initials || '??';
   };
 
-  const formatDate = (timestamp: Timestamp) => {
-    const date = timestamp.toDate();
-    const locale = language === 'es' ? 'es-ES' : 'en-US';
-    return date.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  const formatDate = (timestamp: Timestamp | null | undefined) => {
+    if (!timestamp) {
+      return language === 'es' ? 'Fecha desconocida' : 'Unknown date';
+    }
+    try {
+      const date = timestamp.toDate();
+      const locale = language === 'es' ? 'es-ES' : 'en-US';
+      return date.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return language === 'es' ? 'Fecha desconocida' : 'Unknown date';
+    }
   };
 
   // Generate gradient colors based on user name (same logic as avatar)
   const getGradientColors = (name: string) => {
+    // Default colors if name is empty or invalid
+    if (!name || name.trim() === '') {
+      return {
+        from: 'hsl(220, 70%, 55%)', // Default blue
+        to: 'hsl(280, 70%, 55%)',   // Default purple
+      };
+    }
+
     const hash = name.split('').reduce((acc, char) => {
       return char.charCodeAt(0) + ((acc << 5) - acc);
     }, 0);
