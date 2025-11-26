@@ -100,14 +100,6 @@ export default function DashboardPage() {
   const [showConfig, setShowConfig] = useState(false);
   const [chartVisibility, setChartVisibility] = useState<ChartVisibility>(DEFAULT_CHART_VISIBILITY);
 
-  // Generar lista de meses y años disponibles
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: i,
-    label: format(new Date(2024, i, 1), 'MMMM', { locale: es })
-  }));
-
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-
   // Load chart visibility from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('chartVisibility');
@@ -147,6 +139,15 @@ export default function DashboardPage() {
   };
 
   const localSelected = t.dashboard.languageL === "es" ? es : enUS;
+
+  // Generar lista de meses y años disponibles
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    value: i,
+    label: format(new Date(2024, i, 1), 'MMMM', { locale: localSelected })
+  }));
+
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+
   const loadData = useCallback(async () => {
     if (!user) return;
     try {
@@ -184,7 +185,7 @@ export default function DashboardPage() {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
           <div className="max-w-7xl mx-auto mt-4">
             <div className="text-center py-20">
-              <p className="text-gray-600 dark:text-gray-400">Cargando dashboard...</p>
+              <p className="text-gray-600 dark:text-gray-400">{t.dashboard.loadingDashboard}</p>
             </div>
           </div>
         </div>
@@ -272,7 +273,7 @@ export default function DashboardPage() {
     }).reduce((sum, income) => sum + income.amount, 0);
 
     return {
-      month: format(date, 'MMM', { locale: es }),
+      month: format(date, 'MMM', { locale: localSelected }),
       ingresos: monthIncomes,
       gastos: monthExpenses,
       balance: monthIncomes - monthExpenses
@@ -339,7 +340,7 @@ export default function DashboardPage() {
     }).reduce((sum, expense) => sum + expense.amount, 0);
 
     return {
-      month: format(date, 'MMM', { locale: es }),
+      month: format(date, 'MMM', { locale: localSelected }),
       ahorro: monthIncomes - monthExpenses,
     };
   });
@@ -378,8 +379,8 @@ export default function DashboardPage() {
     }
     return acc;
   }, [
-    { type: 'Fijos', total: 0 },
-    { type: 'Variables', total: 0 }
+    { type: t.dashboard.chartLabels.fixed, total: 0 },
+    { type: t.dashboard.chartLabels.variable, total: 0 }
   ]);
 
   // Chart 6: Top 5 Gastos Individuales (BarChart Horizontal)
@@ -404,7 +405,7 @@ export default function DashboardPage() {
   // Chart 7: Evolucion de Deudas (LineChart) - Deuda total mes a mes
   const debtEvolutionData = Array.from({ length: 6 }, (_, i) => {
     const date = subMonths(selectedDate, 5 - i);
-    const monthLabel = format(date, 'MMM', { locale: es });
+    const monthLabel = format(date, 'MMM', { locale: localSelected });
 
     // For simplicity, we'll show current total debt for all months
     // In a real scenario, you'd track historical debt data
@@ -444,17 +445,17 @@ export default function DashboardPage() {
 
   const currentVsPreviousData = [
     {
-      category: 'Ingresos',
+      category: t.dashboard.chartLabels.incomes,
       mesAnterior: previousMonthIncomes.reduce((sum, inc) => sum + inc.amount, 0),
       mesActual: currentMonthIncomes.reduce((sum, inc) => sum + inc.amount, 0),
     },
     {
-      category: 'Gastos',
+      category: t.dashboard.chartLabels.expenses,
       mesAnterior: previousMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
       mesActual: currentMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
     },
     {
-      category: 'Balance',
+      category: t.dashboard.chartLabels.balance,
       mesAnterior: previousMonthIncomes.reduce((sum, inc) => sum + inc.amount, 0) - previousMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
       mesActual: currentMonthIncomes.reduce((sum, inc) => sum + inc.amount, 0) - currentMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
     },
@@ -476,7 +477,7 @@ export default function DashboardPage() {
       }).reduce((sum, expense) => sum + expense.amount, 0);
 
       return {
-        month: format(date, 'MMM', { locale: es }),
+        month: format(date, 'MMM', { locale: localSelected }),
         amount: monthExpenses,
       };
     });
@@ -531,7 +532,7 @@ export default function DashboardPage() {
                     onValueChange={(value) => setSelectedMonth(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Mes" />
+                      <SelectValue placeholder={t.dashboard.selectMonth} />
                     </SelectTrigger>
                     <SelectContent>
                       {months.map((month) => (
@@ -546,7 +547,7 @@ export default function DashboardPage() {
                     onValueChange={(value) => setSelectedYear(parseInt(value))}
                   >
                     <SelectTrigger className="w-full sm:w-[120px]">
-                      <SelectValue placeholder="Año" />
+                      <SelectValue placeholder={t.dashboard.selectYear} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((year) => (
@@ -766,9 +767,9 @@ export default function DashboardPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend />
-                      <Line type="monotone" dataKey="ingresos" stroke="#22c55e" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name="Ingresos" />
-                      <Line type="monotone" dataKey="gastos" stroke="#ef4444" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name="Gastos" />
-                      <Line type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name="Balance" />
+                      <Line type="monotone" dataKey="ingresos" stroke="#22c55e" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name={t.dashboard.chartLabels.incomes} />
+                      <Line type="monotone" dataKey="gastos" stroke="#ef4444" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name={t.dashboard.chartLabels.expenses} />
+                      <Line type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name={t.dashboard.chartLabels.balance} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -813,7 +814,7 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-slate-400">
-                      No hay gastos registrados este mes
+                      {t.dashboard.noExpensesThisMonth}
                     </div>
                   )}
                 </CardContent>
@@ -850,7 +851,7 @@ export default function DashboardPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend />
-                      <Area type="monotone" dataKey="ahorro" stroke="#22c55e" strokeWidth={2} fill="url(#savingsGradient)" name="Ahorro Acumulado" />
+                      <Area type="monotone" dataKey="ahorro" stroke="#22c55e" strokeWidth={2} fill="url(#savingsGradient)" name={t.dashboard.chartLabels.accumulatedSavings} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -885,12 +886,12 @@ export default function DashboardPage() {
                         />
                         <Tooltip {...tooltipStyle} />
                         <Legend wrapperStyle={{ fontSize: '12px' }} />
-                        <Bar dataKey="progreso" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Progreso %" />
+                        <Bar dataKey="progreso" fill="#f59e0b" radius={[0, 6, 6, 0]} name={t.dashboard.chartLabels.progress} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-slate-400">
-                      No hay objetivos registrados
+                      {t.dashboard.noGoalsRegistered}
                     </div>
                   )}
                 </CardContent>
@@ -921,7 +922,7 @@ export default function DashboardPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend />
-                      <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} name="Total" />
+                      <Bar dataKey="total" fill="#8b5cf6" radius={[6, 6, 0, 0]} name={t.dashboard.chartLabels.total} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -955,12 +956,12 @@ export default function DashboardPage() {
                         />
                         <Tooltip {...tooltipStyle} />
                         <Legend wrapperStyle={{ fontSize: '12px' }} />
-                        <Bar dataKey="monto" fill="#ec4899" radius={[0, 6, 6, 0]} name="Monto" />
+                        <Bar dataKey="monto" fill="#ec4899" radius={[0, 6, 6, 0]} name={t.dashboard.chartLabels.amount} />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-slate-400">
-                      No hay gastos registrados este mes
+                      {t.dashboard.noExpensesThisMonth}
                     </div>
                   )}
                 </CardContent>
@@ -991,7 +992,7 @@ export default function DashboardPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend />
-                      <Line type="monotone" dataKey="deuda" stroke="#ef4444" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name="Deuda Total" />
+                      <Line type="monotone" dataKey="deuda" stroke="#ef4444" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} name={t.dashboard.chartLabels.totalDebt} />
                     </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -1036,7 +1037,7 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-slate-400">
-                      No hay ingresos registrados este mes
+                      {t.dashboard.noIncomesThisMonth}
                     </div>
                   )}
                 </CardContent>
@@ -1067,8 +1068,8 @@ export default function DashboardPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend />
-                      <Bar dataKey="mesAnterior" fill="#94a3b8" radius={[6, 6, 0, 0]} name="Mes Anterior" />
-                      <Bar dataKey="mesActual" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Mes Actual" />
+                      <Bar dataKey="mesAnterior" fill="#94a3b8" radius={[6, 6, 0, 0]} name={t.dashboard.chartLabels.previousMonth} />
+                      <Bar dataKey="mesActual" fill="#3b82f6" radius={[6, 6, 0, 0]} name={t.dashboard.chartLabels.currentMonth} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -1092,7 +1093,7 @@ export default function DashboardPage() {
                               const date = subMonths(selectedDate, 5 - i);
                               return (
                                 <th key={i} className="text-center p-3 border-b border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-semibold">
-                                  {format(date, 'MMM', { locale: es })}
+                                  {format(date, 'MMM', { locale: localSelected })}
                                 </th>
                               );
                             })}
@@ -1125,7 +1126,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="h-[300px] flex items-center justify-center text-slate-400">
-                      No hay datos suficientes para mostrar el heatmap
+                      {t.dashboard.noDataForHeatmap}
                     </div>
                   )}
                 </CardContent>

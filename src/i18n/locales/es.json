@@ -89,7 +89,28 @@
     "languageL" : "es",
     "budgetStatusByCategory": "Estado de Presupuesto por Categoría",
     "percentageUsed" : "usado",
-    "category" : "Categoría"
+    "category" : "Categoría",
+    "loadingDashboard": "Cargando dashboard...",
+    "noExpensesThisMonth": "No hay gastos registrados este mes",
+    "noGoalsRegistered": "No hay objetivos registrados",
+    "noIncomesThisMonth": "No hay ingresos registrados este mes",
+    "noDataForHeatmap": "No hay datos suficientes para mostrar el heatmap",
+    "selectMonth": "Mes",
+    "selectYear": "Año",
+    "chartLabels": {
+      "incomes": "Ingresos",
+      "expenses": "Gastos",
+      "balance": "Balance",
+      "accumulatedSavings": "Ahorro Acumulado",
+      "progress": "Progreso %",
+      "amount": "Monto",
+      "fixed": "Fijos",
+      "variable": "Variables",
+      "total": "Total",
+      "totalDebt": "Deuda Total",
+      "previousMonth": "Mes Anterior",
+      "currentMonth": "Mes Actual"
+    }
 
   },
   "categories": {

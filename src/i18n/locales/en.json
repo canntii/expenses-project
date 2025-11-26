@@ -88,7 +88,28 @@
     "languageL" : "en",
     "budgetStatusByCategory": "Budget Status by Category",
     "percentageUsed" : "used",
-    "category" : "Category"
+    "category" : "Category",
+    "loadingDashboard": "Loading dashboard...",
+    "noExpensesThisMonth": "No expenses registered this month",
+    "noGoalsRegistered": "No goals registered",
+    "noIncomesThisMonth": "No income registered this month",
+    "noDataForHeatmap": "Not enough data to display the heatmap",
+    "selectMonth": "Month",
+    "selectYear": "Year",
+    "chartLabels": {
+      "incomes": "Income",
+      "expenses": "Expenses",
+      "balance": "Balance",
+      "accumulatedSavings": "Accumulated Savings",
+      "progress": "Progress %",
+      "amount": "Amount",
+      "fixed": "Fixed",
+      "variable": "Variable",
+      "total": "Total",
+      "totalDebt": "Total Debt",
+      "previousMonth": "Previous Month",
+      "currentMonth": "Current Month"
+    }
 
   },
   "categories": {
