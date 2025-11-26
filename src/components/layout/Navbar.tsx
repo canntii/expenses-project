@@ -12,6 +12,7 @@ import {
   TrendingUp,
   CreditCard,
   Target,
+  Calculator,
   LogOut,
   Menu,
   X
@@ -33,6 +34,7 @@ export default function Navbar() {
     { href: '/incomes', label: t.nav.incomes, icon: TrendingUp },
     { href: '/installments', label: t.nav.installments, icon: CreditCard },
     { href: '/goals', label: t.nav.goals, icon: Target },
+    { href: '/budgets', label: t.nav.budgets, icon: Calculator },
   ];
 
   // Cerrar dropdown cuando se hace click fuera
