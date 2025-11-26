@@ -127,6 +127,7 @@ export default function CategoriesPage() {
     // Verificar rate limit para actualización
     const rateLimitCheck = updateRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
+      const seconds = rateLimitCheck.retryAfter ?? 0;
       toast.error(
         t.categories.rateLimitExceeded.replace('{seconds}', seconds.toString()),
         { duration: 5000 }
@@ -158,6 +159,7 @@ export default function CategoriesPage() {
     // Verificar rate limit para eliminación
     const rateLimitCheck = deleteRateLimiter.checkLimit(user.uid);
     if (!rateLimitCheck.allowed) {
+      const seconds = rateLimitCheck.retryAfter ?? 0;
       toast.error(
         t.categories.rateLimitExceeded.replace('{seconds}', seconds.toString()),
         { duration: 5000 }
@@ -214,138 +216,138 @@ export default function CategoriesPage() {
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
-      <div className="max-w-7xl mx-auto mt-4">
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                {t.categories.title}
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                {t.categories.subtitle}
-              </p>
-            </div>
-            <Button
-              onClick={() => {
-                setSelectedCategory(null);
-                setIsFormOpen(true);
-              }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50 w-full sm:w-auto"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              {t.categories.newCategory}
-            </Button>
-          </div>
-
-          {/* Filtro de mes y año */}
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+        <div className="max-w-7xl mx-auto mt-4">
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div>
+                <h1 className="pb-2 text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                  {t.categories.title}
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {t.categories.subtitle}
+                </p>
               </div>
-              <div className="flex gap-3 flex-1 max-w-full">
-                <Select
-                  value={selectedMonth.toString()}
-                  onValueChange={(value) => setSelectedMonth(parseInt(value))}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder={t.filters.selectMonth} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {months.map((month) => (
-                      <SelectItem key={month.value} value={month.value.toString()}>
-                        {month.label.charAt(0).toUpperCase() + month.label.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={selectedYear.toString()}
-                  onValueChange={(value) => setSelectedYear(parseInt(value))}
-                >
-                  <SelectTrigger className="w-full sm:w-[120px]">
-                    <SelectValue placeholder={t.filters.selectYear} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {categories.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plus className="w-10 h-10 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
-                {t.categories.noCategory}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {t.categories.startCategory}
-              </p>
               <Button
-                onClick={() => setIsFormOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50"
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setIsFormOpen(true);
+                }}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50 w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                {t.categories.createFirstCategory}
+                {t.categories.newCategory}
               </Button>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories
-              .filter(category => {
-                // Si no tiene activeMonths definido o esta vacio, mostrar siempre
-                if (!category.activeMonths || category.activeMonths.length === 0) {
-                  return true;
-                }
-                // Si tiene activeMonths, mostrar solo si el mes actual esta en la lista
-                return category.activeMonths.includes(selectedMonth);
-              })
-              .map((category) => (
-                <CategoryCard
-                  key={category.uid}
-                  category={category}
-                  spent={expensesByCategory[category.uid] || 0}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                />
-              ))}
-          </div>
-        )}
 
-        <CategoryForm
-          open={isFormOpen}
-          onClose={handleCloseForm}
-          onSubmit={selectedCategory ? handleUpdate : handleCreate}
-          category={selectedCategory}
-        />
+            {/* Filtro de mes y año */}
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t.common.filterBy}</span>
+                </div>
+                <div className="flex gap-3 flex-1 max-w-full">
+                  <Select
+                    value={selectedMonth.toString()}
+                    onValueChange={(value) => setSelectedMonth(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                      <SelectValue placeholder={t.filters.selectMonth} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value.toString()}>
+                          {month.label.charAt(0).toUpperCase() + month.label.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={selectedYear.toString()}
+                    onValueChange={(value) => setSelectedYear(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full sm:w-[120px]">
+                      <SelectValue placeholder={t.filters.selectYear} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <ConfirmDialog
-          open={confirmDialogOpen}
-          onOpenChange={setConfirmDialogOpen}
-          title={t.categories.deleteConfirmTitle}
-          description={t.categories.deleteConfirmDescription}
-          onConfirm={confirmDelete}
-          confirmText={t.common.delete}
-          cancelText={t.common.cancel}
-          variant="destructive"
-        />
+          {categories.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl p-12 max-w-md mx-auto">
+                <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Plus className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+                  {t.categories.noCategory}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  {t.categories.startCategory}
+                </p>
+                <Button
+                  onClick={() => setIsFormOpen(true)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg shadow-blue-500/50 dark:shadow-blue-900/50"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  {t.categories.createFirstCategory}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categories
+                .filter(category => {
+                  // Si no tiene activeMonths definido o esta vacio, mostrar siempre
+                  if (!category.activeMonths || category.activeMonths.length === 0) {
+                    return true;
+                  }
+                  // Si tiene activeMonths, mostrar solo si el mes actual esta en la lista
+                  return category.activeMonths.includes(selectedMonth);
+                })
+                .map((category) => (
+                  <CategoryCard
+                    key={category.uid}
+                    category={category}
+                    spent={expensesByCategory[category.uid] || 0}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                  />
+                ))}
+            </div>
+          )}
+
+          <CategoryForm
+            open={isFormOpen}
+            onClose={handleCloseForm}
+            onSubmit={selectedCategory ? handleUpdate : handleCreate}
+            category={selectedCategory}
+          />
+
+          <ConfirmDialog
+            open={confirmDialogOpen}
+            onOpenChange={setConfirmDialogOpen}
+            title={t.categories.deleteConfirmTitle}
+            description={t.categories.deleteConfirmDescription}
+            onConfirm={confirmDelete}
+            confirmText={t.common.delete}
+            cancelText={t.common.cancel}
+            variant="destructive"
+          />
+        </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }
